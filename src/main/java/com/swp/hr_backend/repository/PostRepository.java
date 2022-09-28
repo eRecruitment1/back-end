@@ -15,6 +15,4 @@ public interface PostRepository extends PagingAndSortingRepository<Post,Integer>
     public List<Post> getLastestPost();
     @Query("SELECT p FROM Post p WHERE p.title LIKE %?1% AND p.status = true")
     List<Post> findPostByTitle(String search, Sort sort);
-    @Query(value = "Select top 6 * from dbo.post order by post_id desc" , nativeQuery = true)
-    public List<Post> getLastestPost();
 }
