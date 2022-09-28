@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.swp.hr_backend.exception.custom.CustomBadRequestException;
+
 import com.swp.hr_backend.exception.custom.CustomNotFoundException;
 import com.swp.hr_backend.model.CustomError;
 import com.swp.hr_backend.model.response.PostResponse;
@@ -16,7 +17,6 @@ import com.swp.hr_backend.service.PostService;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.RequestParam;
-
 
 
 
@@ -34,6 +34,7 @@ public class PostController {
         }
         return ResponseEntity.ok(postResponses);
     }
+
     @GetMapping(value="/filter/get")
     public ResponseEntity<List<PostResponse>> filterByTitle(@RequestParam(name = "keyword") String keyword) throws CustomBadRequestException, CustomNotFoundException {
         List<PostResponse> postResponses = new ArrayList<>();

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.data.domain.Sort;
+
 import org.springframework.stereotype.Service;
 import com.swp.hr_backend.entity.Post;
 import com.swp.hr_backend.model.mapper.ObjectMapper;
@@ -25,6 +26,7 @@ public class PostServiceImpl implements PostService {
        }
         return postResponses;
     }
+
     @Override
     public List<PostResponse> findPostByTitle(String keyword) {
         List<Post> posts = new ArrayList<>();
