@@ -30,7 +30,9 @@ public class WebSecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
         httpSecurity.csrf().disable().authorizeRequests().antMatchers("/api/users/login").permitAll()
                 .antMatchers(HttpMethod.POST, "/api/login").permitAll()
-                .antMatchers(HttpMethod.POST, "/api/refresh-token").permitAll() // to be continue
+                .antMatchers(HttpMethod.POST, "/api/refresh-token").permitAll()
+                .antMatchers("/api/post/getlastest").permitAll() 
+                .antMatchers(HttpMethod.GET, "/api/post/**").permitAll()// to be continue
                 .antMatchers("/api/**").authenticated()
                 .and().sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS);

@@ -1,7 +1,9 @@
 package com.swp.hr_backend.model.mapper;
 
 import com.swp.hr_backend.entity.Account;
+import com.swp.hr_backend.entity.Post;
 import com.swp.hr_backend.model.response.LoginResponse;
+import com.swp.hr_backend.model.response.PostResponse;
 import com.swp.hr_backend.model.response.ProfileResponse;
 
 public class ObjectMapper {
@@ -32,5 +34,15 @@ public class ObjectMapper {
                 .build();
         return profileResponse;
 
+    }
+
+    public static PostResponse postToPostResponse(Post post) {
+       return PostResponse.builder().title(post.getTitle())
+                              .description(post.getDescription())
+                              .thumbnailUrl(post.getThumbnailUrl())
+                              .status(post.isStatus())
+                              .startTime(post.getStartTime())
+                              .build();
+                              
     }
 }
