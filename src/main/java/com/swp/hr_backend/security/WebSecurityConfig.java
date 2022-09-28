@@ -31,6 +31,9 @@ public class WebSecurityConfig {
         httpSecurity.csrf().disable().authorizeRequests().antMatchers("/api/users/login").permitAll()
                 .antMatchers(HttpMethod.POST, "/api/login").permitAll()
                 .antMatchers(HttpMethod.POST, "/api/refresh-token").permitAll()
+
+                .antMatchers("/api/post/getlastest").permitAll() 
+                .antMatchers(HttpMethod.GET, "/api/post/**").permitAll()// to be continue
                 .antMatchers("/api/post/getlastest").permitAll() // to be continue
                 .antMatchers("/api/**").authenticated()
                 .and().sessionManagement()
