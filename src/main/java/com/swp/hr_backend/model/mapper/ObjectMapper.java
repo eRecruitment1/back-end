@@ -6,7 +6,6 @@ import com.swp.hr_backend.entity.Employee;
 import com.swp.hr_backend.entity.Post;
 import com.swp.hr_backend.model.response.LoginResponse;
 import com.swp.hr_backend.model.response.ProfileResponse;
-import com.swp.hr_backend.repository.AccountRepository;
 import com.swp.hr_backend.repository.EmployeeRepository;
 
 public class ObjectMapper {
