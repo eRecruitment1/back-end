@@ -97,12 +97,15 @@ public class AuthenController {
 				nAcc.setStatus(true);
 				nAcc.setUrlImg(googleAcc.getPicture());
 				String[] fullname = googleAcc.getName().split(" ");
-				String firstName = fullname[0];
-				String lastName = fullname[fullname.length - 1];
-				nAcc.setFirstname(firstName);
-				nAcc.setLastname(lastName);
+				if (fullname.length > 1) {
+					String firstName = fullname[0];
+					String lastName = fullname[fullname.length - 1];
+					nAcc.setFirstname(firstName);
+					nAcc.setLastname(lastName);
+				} else {
+					nAcc.setLastname(googleAcc.getName());
+				}
 				nAcc = accountService.createNewCandidate(nAcc);
-				System.out.println(nAcc);
 				if (nAcc != null) {
 					loginResponse = ObjectMapper.accountToLoginResponse(nAcc);
 					if (loginResponse != null) {
