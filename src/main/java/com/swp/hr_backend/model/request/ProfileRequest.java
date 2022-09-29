@@ -11,7 +11,6 @@ public class ProfileRequest {
     private String firstName;
     private String lastName;
     private String urlImg;
-    private String email;
     private String phone;
     private boolean gender;
 }
