@@ -77,7 +77,12 @@ public class AuthenController {
 			if (account != null) {
 				loginResponse = ObjectMapper.accountToLoginResponse(account);
 				if (loginResponse != null) {
+					Integer roleId = employeeService.findRoleIDByAccountID(account.getAccountID());
+					if(roleId != null) {
+						roleName = roleService.findRolenameByRoleID(roleId).get();
+					} else {
 					roleName = "Candidate";
+					}
 					loginResponse.setRoleName(roleName);
 					isAuthen = true;
 				}
