@@ -26,7 +26,11 @@ public class AccountServiceImpl implements AccountService {
 
 	@Override
 	public Account findAccountByUsername(String username) {
-		return  accountRepository.findByUsername(username).get();
+		Account account  = accountRepository.findByUsername(username) ;
+		if(account != null){
+			return account;
+		}
+		return null;
 	}
 
 	public ProfileResponse getProfile(String loggedAccount) {
@@ -52,13 +56,6 @@ public class AccountServiceImpl implements AccountService {
 			account.setUrlImg(urlImg);
 		}
 
-		String email = StringUtils.trimWhitespace(profileRequest.getEmail());
-		if (email != null && !email.equals(account.getEmail()) && !email.isEmpty()) {
-			account.setEmail(email);
-		} else {
-			email = null;
-		}
-
 		String phone = StringUtils.trimWhitespace(profileRequest.getPhone());
 		if (phone != null && !phone.equals(account.getPhone())) {
 			account.setPhone(phone);
@@ -68,7 +65,7 @@ public class AccountServiceImpl implements AccountService {
 
 		boolean gender = profileRequest.isGender();
 		account.setGender(gender);
-		checkDuplicate(email, phone);
+		checkDuplicate(null, phone);
 		account = accountRepository.save(account);
 		return ObjectMapper.accountToProfileResponse(account);
 	}
