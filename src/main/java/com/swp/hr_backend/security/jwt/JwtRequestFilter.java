@@ -41,7 +41,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
     private final AccountRepository accountRepository;
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request,  HttpServletResponse response,
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
             FilterChain filterChain)
             throws ServletException, IOException {
         if (request.getServletPath().equals("/api/login") || request.getServletPath().equals("/api/refresh-token")) {
@@ -78,8 +78,15 @@ public class JwtRequestFilter extends OncePerRequestFilter {
                     Account account = accountOptional.get();
                     if (jwtTokenUtil.validateToken(accessToken, account)) {
                         List<SimpleGrantedAuthority> authorities = new ArrayList<>();
-                        UserDetails userDetails = new org.springframework.security.core.userdetails.User(
-                                account.getUsername(), account.getUsername(), authorities);
+                        UserDetails userDetails = null;
+                        if (account.getPassword() == null) {
+                            userDetails = new org.springframework.security.core.userdetails.User(
+                                    account.getUsername(), account.getUsername(), authorities);
+                        } else{
+                            userDetails = new org.springframework.security.core.userdetails.User(
+                                account.getUsername(), account.getPassword(), authorities);
+                        }
+
                         UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(
                                 userDetails, null, authorities);
                         SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);

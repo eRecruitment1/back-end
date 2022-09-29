@@ -4,13 +4,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.data.domain.Sort;
-
 import org.springframework.stereotype.Service;
 
 import com.swp.hr_backend.dto.PostDTO;
 import com.swp.hr_backend.entity.Post;
 import com.swp.hr_backend.model.mapper.ObjectMapper;
-import com.swp.hr_backend.model.mapper.PostMapper;
 import com.swp.hr_backend.repository.EmployeeRepository;
 import com.swp.hr_backend.repository.PostRepository;
 

@@ -16,3 +16,4 @@ import lombok.Setter;
 public class Candidate extends Account {
     
 }
+

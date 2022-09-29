@@ -10,21 +10,17 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.swp.hr_backend.dto.PostDTO;
-import com.swp.hr_backend.entity.Post;
 import com.swp.hr_backend.exception.custom.BaseCustomException;
 import com.swp.hr_backend.exception.custom.CustomBadRequestException;
-
 import com.swp.hr_backend.exception.custom.CustomNotFoundException;
 import com.swp.hr_backend.model.CustomError;
-import com.swp.hr_backend.repository.PostRepository;
-import com.swp.hr_backend.service.AccountService;
 import com.swp.hr_backend.service.PostService;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.RequestParam;
 
 @RequestMapping("/api/post")
 @RestController

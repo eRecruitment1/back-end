@@ -26,11 +26,7 @@ public class AccountServiceImpl implements AccountService {
 
 	@Override
 	public Account findAccountByUsername(String username) {
-		try {
-			return accountRepository.findByUsername(username).get();
-		} catch (Exception e) {
-			return null;
-		}
+		return  accountRepository.findByUsername(username).get();
 	}
 
 	public ProfileResponse getProfile(String loggedAccount) {
