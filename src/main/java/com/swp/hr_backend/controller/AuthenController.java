@@ -1,6 +1,8 @@
 package com.swp.hr_backend.controller;
 
+import java.util.Base64;
 import java.util.Optional;
+import java.util.UUID;
 
 import javax.validation.Valid;
 
@@ -11,7 +13,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.google.gson.Gson;
+import com.swp.hr_backend.dto.GoogleAccDTO;
 import com.swp.hr_backend.entity.Account;
+import com.swp.hr_backend.entity.Candidate;
 import com.swp.hr_backend.exception.custom.CustomUnauthorizedException;
 import com.swp.hr_backend.model.CustomError;
 import com.swp.hr_backend.model.mapper.ObjectMapper;
@@ -53,40 +58,72 @@ public class AuthenController {
 
         // truy xuất vào db để check login
 
-        final LoginResponse loginResponse = ObjectMapper
-                .accountToLoginResponse(accountService.findAccountByUsername(loginRequest.getUsername()));
-        Account account = accountService.findAccountByUsername(loginRequest.getUsername());
-        boolean isAuthen = false;
-        String roleName = null;
-        if(account != null){
-            if(loginRequest.getPassword().equals(account.getPassword())){
-                isAuthen = true;
-            }
-            Optional<String> roleNameOptional = Optional.empty();
-            if(isAuthen){
-                Integer roleID = employeeService.findRoleIDByAccountID(account.getAccountID());
-                if(roleID != null){
-                    roleNameOptional = roleService.findRolenameByRoleID(roleID);
-                    roleName = roleNameOptional.get();
-                } else{
-                    roleName = "Candidate";
-                }
-                loginResponse.setRoleName(roleName);
-            }
-        }
+		try {
+			String[] base64EncodedSegments = loginRequest.getAuthToken().split("\\.");
 
-        if (!loginResponse.isStatus() || ! isAuthen) {
-            throw new CustomUnauthorizedException(CustomError.builder().code("unauthorized")
-                    .message("Access denied, you are deactivate").build());
-        }
+			String base64EncodedHeader = base64EncodedSegments[0];
+			String base64EncodedClaims = base64EncodedSegments[1];
+			Base64.Decoder decoder = Base64.getUrlDecoder();
 
-        final String accessToken = jwtTokenUtil.generateToken(loginResponse.getUsername(),
-                JwtTokenUtil.ACCESS_TOKEN_EXPIRED, roleName);
-        final String refreshToken = jwtTokenUtil.generateToken(loginResponse.getUsername(),
-                JwtTokenUtil.REFRESH_TOKEN_EXPIRED, roleName);
-        loginResponse.setToken(accessToken);
-        loginResponse.setRefreshToken(refreshToken);
-        return ResponseEntity.ok(loginResponse);
+			String header = new String(decoder.decode(base64EncodedHeader));
+			String payload = new String(decoder.decode(base64EncodedClaims));
+			Gson gson = new Gson();
+			GoogleAccDTO googleAcc = gson.fromJson(payload, GoogleAccDTO.class);
+
+			LoginResponse loginResponse = null;
+			Account account = accountService.findAccountByUsername(googleAcc.getEmail());
+			boolean isAuthen = false;
+			String roleName = null;
+			if (account != null) {
+				loginResponse = ObjectMapper.accountToLoginResponse(account);
+				if (loginResponse != null) {
+					roleName = "Candidate";
+					loginResponse.setRoleName(roleName);
+					isAuthen = true;
+				}
+			} else {
+				Candidate nAcc = new Candidate();
+				String guid = UUID.randomUUID().toString();
+				nAcc.setAccountID(guid);
+				nAcc.setGender(true);
+				nAcc.setPhone("");
+				nAcc.setUsername(googleAcc.getEmail());
+				nAcc.setEmail(googleAcc.getEmail());
+				nAcc.setStatus(true);
+				nAcc.setUrlImg(googleAcc.getPicture());
+				String[] fullname = googleAcc.getName().split(" ");
+				String firstName = fullname[0];
+				String lastName = fullname[fullname.length - 1];
+				nAcc.setFirstname(firstName);
+				nAcc.setLastname(lastName);
+				nAcc = accountService.createNewCandidate(nAcc);
+				System.out.println(nAcc);
+				if (nAcc != null) {
+					loginResponse = ObjectMapper.accountToLoginResponse(nAcc);
+					if (loginResponse != null) {
+						roleName = "Candidate";
+						loginResponse.setRoleName(roleName);
+						isAuthen = true;
+					}
+				}
+			}
+			if (loginResponse == null || (loginResponse != null && !loginResponse.isStatus()) || !isAuthen) {
+				throw new CustomUnauthorizedException(CustomError.builder().code("unauthorized")
+						.message("Access denied, you are deactivate").build());
+			}
+
+			final String accessToken = jwtTokenUtil.generateToken(loginResponse.getUsername(),
+					JwtTokenUtil.ACCESS_TOKEN_EXPIRED, roleName);
+			final String refreshToken = jwtTokenUtil.generateToken(loginResponse.getUsername(),
+					JwtTokenUtil.REFRESH_TOKEN_EXPIRED, roleName);
+			loginResponse.setToken(accessToken);
+			loginResponse.setRefreshToken(refreshToken);
+			return ResponseEntity.ok(loginResponse);
+		} catch (Exception e) {
+			System.out.println(e.toString());
+			throw new CustomUnauthorizedException(
+					CustomError.builder().code("unauthorized").message("Access denied, you are deactivate").build());
+		}
     }
     @PostMapping("refresh-token")
     public ResponseEntity<?> refreshToken(@Valid @RequestBody RefreshTokenRequest tokenRequest){
