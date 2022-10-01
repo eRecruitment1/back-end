@@ -36,6 +36,6 @@ public class Post {
     @Column(name = "status",nullable = false)
     private boolean status;
     @ManyToOne
-    @JoinColumn(name = "employee_id")
+    @JoinColumn(name = "account_id")
     private Employee employee;
 }

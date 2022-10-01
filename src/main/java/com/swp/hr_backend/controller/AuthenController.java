@@ -17,6 +17,7 @@ import com.google.gson.Gson;
 import com.swp.hr_backend.dto.GoogleAccDTO;
 import com.swp.hr_backend.entity.Account;
 import com.swp.hr_backend.entity.Candidate;
+import com.swp.hr_backend.exception.custom.CustomNotFoundException;
 import com.swp.hr_backend.exception.custom.CustomUnauthorizedException;
 import com.swp.hr_backend.model.CustomError;
 import com.swp.hr_backend.model.mapper.ObjectMapper;
@@ -101,7 +102,10 @@ public class AuthenController {
 				String[] fullname = googleAcc.getName().split(" ");
 				if (fullname.length > 1) {
 					String firstName = fullname[0];
-					String lastName = fullname[fullname.length - 1];
+					String lastName = "";
+					for (int i = 1; i < fullname.length; i++) {
+						lastName += fullname[i] + " ";
+					}
 					nAcc.setFirstname(firstName);
 					nAcc.setLastname(lastName);
 				} else {
@@ -160,9 +164,14 @@ public class AuthenController {
 		// authenticate(loginRequest.getUsername(), loginRequest.getPassword());
 
 		// truy xuất vào db để check login
-		final LoginResponse loginResponse = ObjectMapper
-				.accountToLoginResponse(accountService.findAccountByUsername(loginRequest.getUsername()));
 		Account account = accountService.findAccountByUsername(loginRequest.getUsername());
+		LoginResponse loginResponse = null;
+		if(account != null){
+             loginResponse = ObjectMapper
+				.accountToLoginResponse(account);
+		}else{
+			throw new CustomNotFoundException(CustomError.builder().code("404").message("not found response").build());
+		}
 		boolean isAuthen = false;
 		String roleName = null;
 		if (account != null) {
