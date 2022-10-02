@@ -13,11 +13,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.swp.hr_backend.dto.PostDTO;
 import com.swp.hr_backend.exception.custom.BaseCustomException;
 import com.swp.hr_backend.exception.custom.CustomBadRequestException;
 import com.swp.hr_backend.exception.custom.CustomNotFoundException;
 import com.swp.hr_backend.model.CustomError;
+import com.swp.hr_backend.model.dto.PostDTO;
 import com.swp.hr_backend.service.PostService;
 
 import lombok.RequiredArgsConstructor;
@@ -57,11 +57,7 @@ public class PostController {
 	public ResponseEntity<PostDTO> createPost(@RequestBody PostDTO post) throws BaseCustomException {
 		PostDTO postCreated = postService.createNewPost(post);
 		if (postCreated == null) {
-			CustomError error = new CustomError();
-			error.setCode(HttpStatus.BAD_GATEWAY.toString());
-			error.setMessage("Create Post Invalid Field!");
-			error.setTable("Post");
-			throw new BaseCustomException(error);
+			throw new CustomBadRequestException(CustomError.builder().code("403").message("post is null").build());
 		} else {
 			return new ResponseEntity<>(postCreated, HttpStatus.CREATED);
 		}
@@ -71,11 +67,7 @@ public class PostController {
 	public ResponseEntity<PostDTO> updatePost(@RequestBody PostDTO post) throws BaseCustomException {
 		PostDTO postUpdated = postService.updatePost(post);
 		if (postUpdated == null) {
-			CustomError error = new CustomError();
-			error.setCode(HttpStatus.NOT_FOUND.toString());
-			error.setMessage("Update Post Failed!");
-			error.setTable("Post");
-			throw new BaseCustomException(error);
+			throw new CustomNotFoundException(CustomError.builder().code("404").message("Not Found Anything").build());
 		} else {
 			return new ResponseEntity<>(postUpdated, HttpStatus.ACCEPTED);
 		}

@@ -2,7 +2,7 @@ package com.swp.hr_backend.service;
 
 import java.util.List;
 
-import com.swp.hr_backend.dto.PostDTO;
+import com.swp.hr_backend.model.dto.PostDTO;
 
 public interface PostService {
     public List<PostDTO> getLastestPost();

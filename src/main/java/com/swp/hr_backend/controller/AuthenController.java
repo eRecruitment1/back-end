@@ -14,12 +14,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.google.gson.Gson;
-import com.swp.hr_backend.dto.GoogleAccDTO;
 import com.swp.hr_backend.entity.Account;
 import com.swp.hr_backend.entity.Candidate;
 import com.swp.hr_backend.exception.custom.CustomNotFoundException;
 import com.swp.hr_backend.exception.custom.CustomUnauthorizedException;
 import com.swp.hr_backend.model.CustomError;
+import com.swp.hr_backend.model.dto.GoogleAccDTO;
 import com.swp.hr_backend.model.mapper.ObjectMapper;
 import com.swp.hr_backend.model.request.CustomLoginRequest;
 import com.swp.hr_backend.model.request.LoginRequest;
@@ -29,6 +29,7 @@ import com.swp.hr_backend.model.response.RefreshTokenResponse;
 import com.swp.hr_backend.service.AccountService;
 import com.swp.hr_backend.service.EmployeeService;
 import com.swp.hr_backend.service.RoleService;
+import com.swp.hr_backend.utils.AccountRole;
 import com.swp.hr_backend.utils.JwtTokenUtil;
 import lombok.RequiredArgsConstructor;
 
@@ -55,7 +56,7 @@ public class AuthenController {
 	// }
 	// }
 	@PostMapping(value = "/login")
-	public ResponseEntity<LoginResponse> createAuthenticationToken(@RequestBody LoginRequest loginRequest) throws Exception {
+	public ResponseEntity<?> createAuthenticationToken(@RequestBody LoginRequest loginRequest) throws Exception {
 
 		// authenticate(loginRequest.getUsername(), loginRequest.getPassword());
 
@@ -80,14 +81,10 @@ public class AuthenController {
 			if (account != null) {
 				loginResponse = ObjectMapper.accountToLoginResponse(account);
 				if (loginResponse != null) {
-					Integer roleId = employeeService.findRoleIDByAccountID(account.getAccountID());
-					if (roleId != null) {
-						roleName = roleService.findRolenameByRoleID(roleId).get();
-					} else {
-						roleName = "Candidate";
+					if ((roleName = jwtTokenUtil.getRoleNameByAccountId(account.getAccountID())) != null) {
+						loginResponse.setRoleName(roleName);
+						isAuthen = true;
 					}
-					loginResponse.setRoleName(roleName);
-					isAuthen = true;
 				}
 			} else {
 				Candidate nAcc = new Candidate();
@@ -115,7 +112,7 @@ public class AuthenController {
 				if (nAcc != null) {
 					loginResponse = ObjectMapper.accountToLoginResponse(nAcc);
 					if (loginResponse != null) {
-						roleName = "Candidate";
+						roleName = AccountRole.CANDIDATE.toString();
 						loginResponse.setRoleName(roleName);
 						isAuthen = true;
 					}
@@ -148,8 +145,7 @@ public class AuthenController {
 		String username = jwtTokenUtil.getUsernameFromToken(tokenRequest.getRefreshToken());
 		Account account = accountService.findAccountByUsername(username);
 		if (account == null) {
-			return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-					.body("Token claim is invalid");
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token claim is invalid");
 		}
 		String roleName = jwtTokenUtil.getTokenPayLoad(tokenRequest.getRefreshToken()).getRoleName();
 		String newToken = jwtTokenUtil.generateToken(username, JwtTokenUtil.ACCESS_TOKEN_EXPIRED, roleName);
@@ -159,17 +155,16 @@ public class AuthenController {
 	}
 
 	@PostMapping(value = "users/login")
-	public ResponseEntity<LoginResponse> customAuthenticationToken(@RequestBody CustomLoginRequest loginRequest) throws Exception {
+	public ResponseEntity<?> customAuthenticationToken(@RequestBody CustomLoginRequest loginRequest) throws Exception {
 
 		// authenticate(loginRequest.getUsername(), loginRequest.getPassword());
 
 		// truy xuất vào db để check login
 		Account account = accountService.findAccountByUsername(loginRequest.getUsername());
 		LoginResponse loginResponse = null;
-		if(account != null){
-             loginResponse = ObjectMapper
-				.accountToLoginResponse(account);
-		}else{
+		if (account != null) {
+			loginResponse = ObjectMapper.accountToLoginResponse(account);
+		} else {
 			throw new CustomNotFoundException(CustomError.builder().code("404").message("not found response").build());
 		}
 		boolean isAuthen = false;
@@ -185,15 +180,15 @@ public class AuthenController {
 					roleNameOptional = roleService.findRolenameByRoleID(roleID);
 					roleName = roleNameOptional.get();
 				} else {
-					roleName = "Candidate";
+					roleName = AccountRole.CANDIDATE.toString();
 				}
 				loginResponse.setRoleName(roleName);
 			}
 		}
 
 		if (!loginResponse.isStatus() || !isAuthen) {
-			throw new CustomUnauthorizedException(CustomError.builder().code("unauthorized")
-					.message("Access denied, you are deactivate").build());
+			throw new CustomUnauthorizedException(
+					CustomError.builder().code("unauthorized").message("Access denied, you are deactivate").build());
 		}
 
 		final String accessToken = jwtTokenUtil.generateToken(loginResponse.getUsername(),
