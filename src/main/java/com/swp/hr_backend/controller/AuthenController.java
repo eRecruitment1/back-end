@@ -55,7 +55,7 @@ public class AuthenController {
 	// }
 	// }
 	@PostMapping(value = "/login")
-	public ResponseEntity<?> createAuthenticationToken(@RequestBody LoginRequest loginRequest) throws Exception {
+	public ResponseEntity<LoginResponse> createAuthenticationToken(@RequestBody LoginRequest loginRequest) throws Exception {
 
 		// authenticate(loginRequest.getUsername(), loginRequest.getPassword());
 
@@ -159,7 +159,7 @@ public class AuthenController {
 	}
 
 	@PostMapping(value = "users/login")
-	public ResponseEntity<?> customAuthenticationToken(@RequestBody CustomLoginRequest loginRequest) throws Exception {
+	public ResponseEntity<LoginResponse> customAuthenticationToken(@RequestBody CustomLoginRequest loginRequest) throws Exception {
 
 		// authenticate(loginRequest.getUsername(), loginRequest.getPassword());
 
