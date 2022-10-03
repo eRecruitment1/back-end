@@ -135,15 +135,24 @@ public class JwtTokenUtil implements Serializable {
 	
 	public boolean checkPermissionCurrentAccount(AccountRole accRole) {
 		Account acc = loggedAccount();
-		if(acc == null) return false;
-		return checkPermissionCurrentAccount(acc, accRole);
+		if (acc == null || accRole == null)
+			return false;
+		return checkPermissionAccount(acc, accRole);
 	}
-	
-	public boolean checkPermissionCurrentAccount(Account acc, AccountRole accRole) {
-		if(acc == null) return false;
-		String roleName = getRoleNameByAccountId(acc.getAccountID());
-		if(roleName == null) return false;
-		if (roleName.equals(accRole.toString())) return true;
+
+	public boolean checkPermissionAccount(Account acc, AccountRole accRole) {
+		if (acc == null || accRole == null)
+			return false;
+		if (accRole.equals(AccountRole.CANDIDATE)) {
+			Candidate candidate = candRepo.findById(acc.getAccountID()).get();
+			if(candidate != null) return true;
+		} else {
+			String roleName = getRoleNameByAccountId(acc.getAccountID());
+			if (roleName == null)
+				return false;
+			if (roleName.equals(accRole.toString()))
+				return true;
+		}
 		return false;
 	}
 }
