@@ -58,7 +58,7 @@ public class PostServiceImpl implements PostService {
 		try {
 			if (post != null) {
 				Account acc = jwtTokenUtil.loggedAccount();
-				if (jwtTokenUtil.checkPermissionCurrentAccount(acc, AccountRole.HREMPLOYEE)) {
+				if (jwtTokenUtil.checkPermissionAccount(acc, AccountRole.HREMPLOYEE)) {
 					post.setStatus(true);
 					post.setStartTime(new Timestamp(System.currentTimeMillis()));
 					post.setAccountId(acc.getAccountID());
@@ -78,7 +78,7 @@ public class PostServiceImpl implements PostService {
 		try {
 			if (post != null) {
 				Account acc = jwtTokenUtil.loggedAccount();
-				if (jwtTokenUtil.checkPermissionCurrentAccount(acc, AccountRole.HREMPLOYEE)) {
+				if (jwtTokenUtil.checkPermissionAccount(acc, AccountRole.HREMPLOYEE)) {
 					post.setStartTime(new Timestamp(System.currentTimeMillis()));
 					post.setAccountId(acc.getAccountID());
 					Post postInDb = postRepository.findById(post.getPostId()).get();

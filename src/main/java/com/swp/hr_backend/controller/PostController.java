@@ -3,6 +3,8 @@ package com.swp.hr_backend.controller;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.validation.Valid;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -54,7 +56,7 @@ public class PostController {
 	}
 
 	@PostMapping("/create")
-	public ResponseEntity<PostDTO> createPost(@RequestBody PostDTO post) throws BaseCustomException {
+	public ResponseEntity<PostDTO> createPost(@Valid @RequestBody PostDTO post) throws BaseCustomException {
 		PostDTO postCreated = postService.createNewPost(post);
 		if (postCreated == null) {
 			throw new CustomBadRequestException(CustomError.builder().code("403").message("post is null").build());
@@ -64,7 +66,7 @@ public class PostController {
 	}
 
 	@PutMapping("/update")
-	public ResponseEntity<PostDTO> updatePost(@RequestBody PostDTO post) throws BaseCustomException {
+	public ResponseEntity<PostDTO> updatePost(@Valid @RequestBody PostDTO post) throws BaseCustomException {
 		PostDTO postUpdated = postService.updatePost(post);
 		if (postUpdated == null) {
 			throw new CustomNotFoundException(CustomError.builder().code("404").message("Not Found Anything").build());

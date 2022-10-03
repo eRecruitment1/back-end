@@ -16,7 +16,9 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import com.swp.hr_backend.entity.Account;
+import com.swp.hr_backend.entity.Candidate;
 import com.swp.hr_backend.model.TokenPayLoad;
+import com.swp.hr_backend.repository.CandidateRepository;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
@@ -40,6 +42,7 @@ public class JwtTokenUtil implements Serializable {
 	private final AccountService accountService;
 	private final EmployeeService employeeService;
 	private final RoleService roleService;
+	private final CandidateRepository candRepo;
 
 	private Claims getAllClaimsFromToken(String token) {
 		return Jwts.parser().setSigningKey(secret).parseClaimsJws(token).getBody();
@@ -132,7 +135,7 @@ public class JwtTokenUtil implements Serializable {
 		}
 		return null;
 	}
-	
+
 	public boolean checkPermissionCurrentAccount(AccountRole accRole) {
 		Account acc = loggedAccount();
 		if (acc == null || accRole == null)

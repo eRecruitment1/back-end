@@ -1,4 +1,4 @@
-package com.swp.hr_backend.swagger;
+	package com.swp.hr_backend.swagger;
 
 import java.util.Arrays;
 import java.util.Collections;
