@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import com.swp.hr_backend.entity.Account;
 import com.swp.hr_backend.entity.Post;
+import com.swp.hr_backend.exception.custom.BaseCustomException;
 import com.swp.hr_backend.exception.custom.CustomNotFoundException;
 import com.swp.hr_backend.exception.custom.CustomUnauthorizedException;
 import com.swp.hr_backend.model.CustomError;
@@ -54,44 +55,39 @@ public class PostServiceImpl implements PostService {
 	}
 
 	@Override
-	public PostDTO createNewPost(PostDTO post) {
-		try {
-			if (post != null) {
-				Account acc = jwtTokenUtil.loggedAccount();
-				if (jwtTokenUtil.checkPermissionAccount(acc, AccountRole.HREMPLOYEE)) {
-					post.setStatus(true);
-					post.setStartTime(new Timestamp(System.currentTimeMillis()));
-					post.setAccountId(acc.getAccountID());
-					return ObjectMapper
-							.postToPostDTO(postRepository.save(ObjectMapper.postDTOToPost(post, employeeRepository)));
-				} else throw new CustomUnauthorizedException(
-						CustomError.builder().code("unauthorized").message("Access denied, you need to be Hr Employee to do this!").build());
-			}
-		} catch (Exception e) {
-			System.out.println(e.toString());
+	public PostDTO createNewPost(PostDTO post) throws BaseCustomException {
+		if (post != null) {
+			Account acc = jwtTokenUtil.loggedAccount();
+			if (jwtTokenUtil.checkPermissionAccount(acc, AccountRole.HREMPLOYEE)) {
+				post.setStatus(true);
+				post.setStartTime(new Timestamp(System.currentTimeMillis()));
+				post.setAccountId(acc.getAccountID());
+				return ObjectMapper
+						.postToPostDTO(postRepository.save(ObjectMapper.postDTOToPost(post, employeeRepository)));
+			} else throw new CustomUnauthorizedException(CustomError.builder().code("unauthorized")
+						.message("Access denied, you need to be Hr Employee to do this!").build());
 		}
 		return null;
 	}
 
 	@Override
-	public PostDTO updatePost(PostDTO post) {
-		try {
-			if (post != null) {
-				Account acc = jwtTokenUtil.loggedAccount();
-				if (jwtTokenUtil.checkPermissionAccount(acc, AccountRole.HREMPLOYEE)) {
-					post.setStartTime(new Timestamp(System.currentTimeMillis()));
-					post.setAccountId(acc.getAccountID());
-					Post postInDb = postRepository.findById(post.getPostId()).get();
-					if (postInDb != null) {
-						postInDb = postRepository.save(ObjectMapper.postDTOToPost(post, employeeRepository));
-						if (postInDb != null)
-							return post;
-					} else throw new CustomNotFoundException(CustomError.builder().code("404").message("not found response").build());
-				} else throw new CustomUnauthorizedException(
-						CustomError.builder().code("unauthorized").message("Access denied, you need to be Hr Employee to do this!").build());
-			}
-		} catch (Exception e) {
-			System.out.println(e.toString());
+	public PostDTO updatePost(PostDTO post) throws BaseCustomException {
+		if (post != null) {
+			Account acc = jwtTokenUtil.loggedAccount();
+			if (jwtTokenUtil.checkPermissionAccount(acc, AccountRole.HREMPLOYEE)) {
+				post.setStartTime(new Timestamp(System.currentTimeMillis()));
+				post.setAccountId(acc.getAccountID());
+				Post postInDb = postRepository.findById(post.getPostId()).get();
+				if (postInDb != null) {
+					postInDb = postRepository.save(ObjectMapper.postDTOToPost(post, employeeRepository));
+					if (postInDb != null)
+						return post;
+				} else
+					throw new CustomNotFoundException(
+							CustomError.builder().code("404").message("not found response").build());
+			} else
+				throw new CustomUnauthorizedException(CustomError.builder().code("unauthorized")
+						.message("Access denied, you need to be Hr Employee to do this!").build());
 		}
 		return null;
 	}
