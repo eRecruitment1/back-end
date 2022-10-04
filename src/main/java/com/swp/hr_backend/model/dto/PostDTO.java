@@ -17,7 +17,6 @@ import lombok.Setter;
 @NoArgsConstructor
 public class PostDTO {
 	
-	@Nullable
 	@JsonProperty("postId")
 	private int postId;
 	@Nullable
@@ -29,7 +28,6 @@ public class PostDTO {
 	private String description;
 	@JsonProperty("thumbnailUrl")
 	private String thumbnailUrl;
-	@Nullable
 	@JsonProperty("status")
 	private boolean status;
 	@Nullable
