@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/profile")
 @RestController
 @RequiredArgsConstructor
+@CrossOrigin
 public class ProfileController {
 
     private final AccountService accountService;
