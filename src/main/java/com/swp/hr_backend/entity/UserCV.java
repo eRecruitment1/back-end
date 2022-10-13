@@ -30,6 +30,6 @@ public class UserCV {
     private Candidate candidate;
     @OneToOne(mappedBy = "userCV", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private FinalResult finalResult;
-    @OneToMany(mappedBy = "userCV",cascade = CascadeType.ALL,fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "userCV",cascade = CascadeType.ALL,fetch = FetchType.EAGER)
     private List<ScheduleDetail> scheduleDetails;
 }
