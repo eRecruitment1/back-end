@@ -13,6 +13,7 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Inheritance;
 import javax.persistence.InheritanceType;
+import java.util.UUID;
 
 @Entity
 @Data
@@ -25,24 +26,24 @@ import javax.persistence.InheritanceType;
 @Table(name = "account")
 public class Account {
     @Id
-    @Column(name = "account_id")
+    @Column(name = "account_id", nullable = false)
     private String accountID;
-    @Column(name = "username",unique = true, nullable = false)
+    @Column(name = "username",unique = true, nullable = false, length = 50)
     private String username;
-    @Column(name = "password")
+    @Column(name = "password", length = 50)
     private String password;
-    @Column(name = "email" ,unique = true,nullable = false)
+    @Column(name = "email" ,unique = true,nullable = false, length = 100)
     private String email;
-    @Column(name = "phone",unique = true)
+    @Column(name = "phone",unique = true, length = 10)
     private String phone;
-    @Column(name = "firstname")
+    @Column(name = "firstname", length = 20)
     private String firstname;
-    @Column(name = "lastname")
+    @Column(name = "lastname", length = 20)
     private String lastname;
-    @Column(name = "url_img")
+    @Column(name = "url_img", length = 2084)
     private String urlImg;
-    @Column(name = "gender")
+    @Column(name = "gender", nullable = false)
     private boolean gender;
-    @Column(name = "status" ,nullable = false)
+    @Column(name = "status", nullable = false)
     private boolean status;
 }
