@@ -15,7 +15,7 @@ import java.sql.Time;
 @Getter
 @NoArgsConstructor
 @Table(name = "scheduleDetail")
-public class ScheduleDetail implements Serializable {
+public class ScheduleDetail {
     @EmbeddedId
     @Cascade(org.hibernate.annotations.CascadeType.REMOVE)
     ScheduleDetailID scheduleDetailID;

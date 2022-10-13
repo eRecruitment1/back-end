@@ -3,12 +3,7 @@ package com.swp.hr_backend.service;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
@@ -93,32 +88,6 @@ public class PostServiceImpl implements PostService {
 			} else
 				throw new CustomUnauthorizedException(CustomError.builder().code("unauthorized")
 						.message("Access denied, you need to be Hr Employee to do this!").build());
-		}
-		return null;
-	}
-	@Override
-	public Page<PostDTO> getAllPost(int pageNumber, int pageSize) {
-		Pageable pageable = PageRequest.of(pageNumber, pageSize);
-		List<Post> postList = postRepository.SelectAll();
-		List<PostDTO> postDTOList = new ArrayList<>();
-		for (Post post : postList) {
-			if (post.isStatus()) {
-				PostDTO postDTO = ObjectMapper.postToPostDTO(post);
-				postDTOList.add(postDTO);
-			}
-		}
-		Pageable paging = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize());
-		int start = Math.min((int) paging.getOffset(), postDTOList.size());
-		int end = Math.min((start + paging.getPageSize()), postDTOList.size());
-		Page<PostDTO> pagePostDTO = new PageImpl<>(postDTOList.subList(start, end), pageable, postDTOList.size());
-		return pagePostDTO;
-	}
-
-	@Override
-	public PostDTO getPostByID(int id) {
-		Optional<Post> post = postRepository.findById(id);
-		if(post.isPresent()){
-			return ObjectMapper.postToPostDTO(post.get());
 		}
 		return null;
 	}

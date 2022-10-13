@@ -15,6 +15,4 @@ public interface PostRepository extends PagingAndSortingRepository<Post, Integer
     public List<Post> getLastestPost();
     @Query("SELECT p FROM Post p WHERE lower(p.title) LIKE lower(concat('%',?1,'%')) AND p.status = true")
     List<Post> findPostByTitle(String search, Sort sort);
-    @Query("Select p From Post p order by p.id desc")
-    List<Post> SelectAll();
 }

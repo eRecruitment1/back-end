@@ -15,10 +15,10 @@ import java.io.Serializable;
 @AllArgsConstructor
 @Embeddable
 public class ScheduleDetailID implements Serializable {
-    @Column(name = "schedule_id")
+    @Column(name = "schedule_id" , nullable = false)
     private int scheduleID;
-    @Column(name = "account_id")
+    @Column(name = "account_id" , nullable = false, columnDefinition = "uuid")
     private String interviewerID;
-    @Column(name = "cv_id")
+    @Column(name = "cv_id" , nullable = false)
     private int cvID;
 }
