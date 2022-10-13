@@ -5,6 +5,7 @@ import com.swp.hr_backend.model.dto.PostDTO;
 import com.swp.hr_backend.model.response.LoginResponse;
 import com.swp.hr_backend.model.response.ProfileResponse;
 import com.swp.hr_backend.model.response.ScheduleDetailResponse;
+import com.swp.hr_backend.model.response.UserCVUploadResponse;
 import com.swp.hr_backend.repository.EmployeeRepository;
 
 import java.util.List;
@@ -69,4 +70,14 @@ public class ObjectMapper {
 				.build();
 		return scheduleDetailResponse;
 	}
+	public static UserCVUploadResponse userCVToUserCVResponse(UserCV userCV){
+		return UserCVUploadResponse.builder().userCVID(userCV.getCvID())
+		                           .applyTime(userCV.getApplyTime())
+								   .linkCV(userCV.getLinkCV())
+								   .postID(userCV.getPost().getPostID())
+								   .accountID(userCV.getCandidate().getAccountID())
+								   .build();
+								   
+	}
+
 }
