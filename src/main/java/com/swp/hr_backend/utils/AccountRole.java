@@ -6,4 +6,5 @@ public enum AccountRole {
 	HREMPLOYEE,
 	INTERVIEWER,
 	ADMIN,
+	EMPLOYEE,
 }

@@ -30,8 +30,9 @@ public class Role {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "role_id")
     private int roleID;
-    @Column(name = "role_name",nullable = false)
+    @Column(name = "role_name", length = 15, nullable = false)
     private String roleName;
     @OneToMany(mappedBy = "role",cascade = CascadeType.ALL,fetch = FetchType.EAGER)
     private List<Employee> employee;
 }
+

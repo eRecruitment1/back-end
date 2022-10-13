@@ -1,6 +1,7 @@
 package com.swp.hr_backend.entity;
 
 import java.util.List;
+import java.util.Set;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
@@ -22,9 +23,11 @@ import lombok.Setter;
 @Table(name = "employee")
 @PrimaryKeyJoinColumn(name = "account_id")
 public class Employee extends Account {
-    @ManyToOne
-    @JoinColumn(name = "role_id")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "role_id", nullable = false)
     private Role role;
     @OneToMany(mappedBy = "employee",cascade = CascadeType.ALL,fetch = FetchType.EAGER)
-    private List<Post> posts;
+    private Set<Post> posts;
+    @OneToMany(mappedBy = "interviewer",cascade = CascadeType.ALL,fetch = FetchType.EAGER)
+    private List<ScheduleDetail> scheduleDetails;
 }

@@ -1,12 +1,13 @@
 package com.swp.hr_backend.model.mapper;
 
-import com.swp.hr_backend.entity.Account;
-import com.swp.hr_backend.entity.Employee;
-import com.swp.hr_backend.entity.Post;
+import com.swp.hr_backend.entity.*;
 import com.swp.hr_backend.model.dto.PostDTO;
 import com.swp.hr_backend.model.response.LoginResponse;
 import com.swp.hr_backend.model.response.ProfileResponse;
+import com.swp.hr_backend.model.response.ScheduleDetailResponse;
 import com.swp.hr_backend.repository.EmployeeRepository;
+
+import java.util.List;
 
 public class ObjectMapper {
 	public static LoginResponse accountToLoginResponse(Account account) {
@@ -54,4 +55,18 @@ public class ObjectMapper {
 		return post;
 	}
 
+	public static ScheduleDetailResponse scheduleToScheduleDetailResponse(Schedule schedule, ScheduleDetail scheduleDetail, List<String> interviewerIDs){
+		ScheduleDetailResponse scheduleDetailResponse = ScheduleDetailResponse.builder()
+				.scheduleID(schedule.getScheduleID())
+				.date(schedule.getDate())
+				.status(scheduleDetail.isStatus())
+				.urlMeeting(scheduleDetail.getUrlMeeting())
+				.startTime(scheduleDetail.getStartTime())
+				.endTime(scheduleDetail.getEndTime())
+				.roundNum(scheduleDetail.getRoundNum())
+				.cvID(scheduleDetail.getUserCV().getCvID())
+				.interviewerID(interviewerIDs)
+				.build();
+		return scheduleDetailResponse;
+	}
 }
