@@ -23,4 +23,7 @@ public interface ScheduleDetailRepository extends CrudRepository<ScheduleDetail,
     @Modifying
     @Query(value = "Delete from schedule_detail WHERE cv_id=?2 And schedule_id = ?1 And account_id LIKE ?3" , nativeQuery = true)
     public void deleteByScheduleIDAndCVIDAndInterviewerID(int scheduleID, int cvID, String interviewerID);
+    
+    @Query(value = "SELECT * FROM schedule_detail WHERE schedule_id = ?1 and account_id LIKE ?2 and cv_id = ?3" , nativeQuery = true)
+    public ScheduleDetail findByScheduleIDAndAccountIDAndCvId(int scheduleID, String accountId, int cvID);
 }

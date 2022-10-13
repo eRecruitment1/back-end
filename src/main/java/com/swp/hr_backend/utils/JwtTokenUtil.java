@@ -136,25 +136,28 @@ public class JwtTokenUtil implements Serializable {
 		return null;
 	}
 
-	public boolean checkPermissionCurrentAccount(AccountRole accRole) {
+	public boolean checkPermissionCurrentAccount(AccountRole... accRole) {
 		Account acc = loggedAccount();
 		if (acc == null || accRole == null)
 			return false;
 		return checkPermissionAccount(acc, accRole);
 	}
 
-	public boolean checkPermissionAccount(Account acc, AccountRole accRole) {
+	public boolean checkPermissionAccount(Account acc, AccountRole... accRole) {
 		if (acc == null || accRole == null)
 			return false;
-		if (accRole.equals(AccountRole.CANDIDATE)) {
-			Candidate candidate = candRepo.findById(acc.getAccountID()).get();
-			if(candidate != null) return true;
-		} else {
-			String roleName = getRoleNameByAccountId(acc.getAccountID());
-			if (roleName == null)
-				return false;
-			if (roleName.equals(accRole.toString()))
-				return true;
+		for (AccountRole role : accRole) {
+			if (role.equals(AccountRole.CANDIDATE)) {
+				Candidate candidate = candRepo.findById(acc.getAccountID().toString()).get();
+				if (candidate != null)
+					return true;
+			} else {
+				String roleName = getRoleNameByAccountId(acc.getAccountID().toString());
+				if (roleName == null)
+					return false;
+				if (roleName.equals(role.toString()))
+					return true;
+			}
 		}
 		return false;
 	}

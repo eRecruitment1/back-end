@@ -2,12 +2,15 @@ package com.swp.hr_backend.model.mapper;
 
 import com.swp.hr_backend.entity.*;
 import com.swp.hr_backend.model.dto.PostDTO;
+import com.swp.hr_backend.model.request.NoteRequest;
 import com.swp.hr_backend.model.response.LoginResponse;
+import com.swp.hr_backend.model.response.NoteResponse;
 import com.swp.hr_backend.model.response.ProfileResponse;
 import com.swp.hr_backend.model.response.ScheduleDetailResponse;
 import com.swp.hr_backend.model.response.UserCVUploadResponse;
 import com.swp.hr_backend.repository.EmployeeRepository;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class ObjectMapper {
@@ -78,6 +81,33 @@ public class ObjectMapper {
 								   .accountID(userCV.getCandidate().getAccountID())
 								   .build();
 								   
+	}
+	
+	public static NoteResponse noteToNoteResponse(Note note) {
+		return NoteResponse.builder().id(note.getNoteID())
+									.message(note.getMessage())
+									.point(note.getPoint())
+									.scheduleId(note.getScheduleDetail().getScheduleDetailID().getScheduleID())
+									.accountId(note.getScheduleDetail().getScheduleDetailID().getInterviewerID())
+									.cvId(note.getScheduleDetail().getScheduleDetailID().getCvID())
+									.build();
+	}
+	
+	public static Note noteRequestToNote(NoteRequest note, ScheduleDetail scheduleDetail) {
+		return Note.builder().message(note.getMessage())
+							 .point(note.getPoint())
+							 .scheduleDetail(scheduleDetail)
+							 .build();
+	}
+	
+	public static List<NoteResponse> notesToNoteResponses(List<Note> notes) {
+		List<NoteResponse> listRes = new ArrayList<NoteResponse>();
+		if(notes != null && notes.size() > 0) {
+			for(Note note : notes) {
+				listRes.add(noteToNoteResponse(note));
+			}
+		} else return null;
+		return listRes;
 	}
 
 }
