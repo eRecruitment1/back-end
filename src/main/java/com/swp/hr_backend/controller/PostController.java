@@ -5,9 +5,11 @@ import java.util.List;
 
 import javax.validation.Valid;
 
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -21,6 +23,7 @@ import com.swp.hr_backend.exception.custom.CustomNotFoundException;
 import com.swp.hr_backend.model.CustomError;
 import com.swp.hr_backend.model.dto.PostDTO;
 import com.swp.hr_backend.service.PostService;
+import com.swp.hr_backend.utils.PageConstant;
 
 import lombok.RequiredArgsConstructor;
 
@@ -73,5 +76,27 @@ public class PostController {
 		} else {
 			return new ResponseEntity<>(postUpdated, HttpStatus.ACCEPTED);
 		}
+	}
+
+	@GetMapping("/getAll")
+	public ResponseEntity<Page<PostDTO>> getAll(
+			@RequestParam(name = "page", required = false, defaultValue = PageConstant.DEFAULT_PAGE_NUMBER) int page,
+			@RequestParam(name = "size", required = false, defaultValue = PageConstant.DEFAULT_PAGE_SIZE) int size)
+			throws CustomNotFoundException {
+		Page<PostDTO> postDTO = postService.getAllPost(page, size);
+		if (!postDTO.hasContent()) {
+			throw new CustomNotFoundException(CustomError.builder().code("404").message("not found anything").build());
+		}
+		return ResponseEntity.ok(postDTO);
+
+	}
+
+	@GetMapping("/get/{id}")
+	public ResponseEntity<PostDTO> getPostByID(@PathVariable("id") int id) throws CustomNotFoundException {
+		PostDTO postDTO = postService.getPostByID(id);
+		if (postDTO == null) {
+			throw new CustomNotFoundException(CustomError.builder().code("404").message("Not found any post").build());
+		}
+		return ResponseEntity.ok(postDTO);
 	}
 }
