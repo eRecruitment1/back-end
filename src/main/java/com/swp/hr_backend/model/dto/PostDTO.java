@@ -16,9 +16,9 @@ import lombok.Setter;
 @Getter
 @NoArgsConstructor
 public class PostDTO {
-	
+    @Nullable
 	@JsonProperty("postId")
-	private int postId;
+	private Integer postId;
 	@Nullable
 	@JsonProperty("startTime")
 	private Timestamp startTime;
