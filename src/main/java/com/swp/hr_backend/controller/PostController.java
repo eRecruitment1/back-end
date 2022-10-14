@@ -80,17 +80,15 @@ public class PostController {
 		}
 	}
 
-	@GetMapping("/getAll")
-	public ResponseEntity<Page<PostDTO>> getAll(
+	@GetMapping(value = "/getAll")
+	public ResponseEntity<Page<PostDTO>> getMethodName(
 			@RequestParam(name = "page", required = false, defaultValue = PageConstant.DEFAULT_PAGE_NUMBER) int page,
-			@RequestParam(name = "size", required = false, defaultValue = PageConstant.DEFAULT_PAGE_SIZE) int size)
-			throws CustomNotFoundException {
+			@RequestParam(name = "size", required = false, defaultValue = PageConstant.DEFAULT_PAGE_SIZE) int size) throws CustomNotFoundException {
 		Page<PostDTO> postDTO = postService.getAllPost(page, size);
 		if (!postDTO.hasContent()) {
 			throw new CustomNotFoundException(CustomError.builder().code("404").message("not found anything").build());
 		}
 		return ResponseEntity.ok(postDTO);
-
 	}
 
 	@GetMapping("/get/{id}")

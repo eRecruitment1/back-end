@@ -113,7 +113,6 @@ public class PostServiceImpl implements PostService {
 		Page<PostDTO> pagePostDTO = new PageImpl<>(postDTOList.subList(start, end), pageable, postDTOList.size());
 		return pagePostDTO;
 	}
-
 	@Override
 	public PostDTO getPostByID(int id) {
 		Optional<Post> post = postRepository.findById(id);
