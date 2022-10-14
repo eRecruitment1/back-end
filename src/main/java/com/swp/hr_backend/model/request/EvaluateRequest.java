@@ -14,5 +14,5 @@ import lombok.Setter;
 public class EvaluateRequest {
 	private int cvId;
 	private int scheduleId;
-	private boolean isPass;
+	private String isPass;
 }

@@ -26,7 +26,6 @@ import com.swp.hr_backend.repository.ScheduleDetailRepository;
 import com.swp.hr_backend.repository.UserCVRepository;
 import com.swp.hr_backend.utils.AccountRole;
 import com.swp.hr_backend.utils.JwtTokenUtil;
-import com.swp.hr_backend.utils.ResultStatus;
 import com.swp.hr_backend.utils.Round;
 
 import lombok.RequiredArgsConstructor;

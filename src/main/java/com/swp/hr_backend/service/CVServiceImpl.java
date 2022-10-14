@@ -32,7 +32,6 @@ import com.swp.hr_backend.repository.PostRepository;
 import com.swp.hr_backend.repository.UserCVRepository;
 import com.swp.hr_backend.utils.AccountRole;
 import com.swp.hr_backend.utils.JwtTokenUtil;
-import com.swp.hr_backend.utils.ResultStatus;
 import com.swp.hr_backend.utils.Round;
 
 import lombok.RequiredArgsConstructor;
@@ -141,6 +140,7 @@ public class CVServiceImpl implements CVService {
 	public boolean evaluateUserCV(EvaluateRequest evaluate) throws BaseCustomException {
 		if (evaluate == null)
 			throw new CustomNotFoundException(CustomError.builder().code("400").message("Bad Request").build());
+		boolean isPass = (evaluate.getIsPass().equalsIgnoreCase("true")) ? true : false;
 		Account curAcc = jwtTokenUtil.loggedAccount();
 		if (curAcc == null)
 			throw new CustomUnauthorizedException(
@@ -152,19 +152,17 @@ public class CVServiceImpl implements CVService {
 					throw new CustomNotFoundException(
 							CustomError.builder().code("404").message("Not Found Final Result!").build());
 				String resultStatus = cv.getFinalResult().getResultStatus();
-				if (resultStatus.toLowerCase().equals(ResultStatus.NONE.toString().toLowerCase()))
-					return false;
-				if (resultStatus.toLowerCase().equals(ResultStatus.NOTPASS.toString().toLowerCase()))
+				if (resultStatus.toLowerCase().equals(Round.NOT_PASS.toString().toLowerCase()))
 					return false;
 				if (jwtTokenUtil.checkPermissionAccount(curAcc, AccountRole.HREMPLOYEE)) {
-					if (resultStatus.toLowerCase().equals(ResultStatus.PENDING.toString().toLowerCase())) {
+					if (resultStatus.toLowerCase().equals(Round.PENDING.toString().toLowerCase())) {
 						if (!checkAvailableScheduleDetail(cv, Round.ROUND1))
 							throw new CustomNotFoundException(CustomError.builder().code("403")
 									.message("Still on meeting, cannot evaluate cv...").build());
-						if (evaluate.isPass()) {
-							cv.getFinalResult().setResultStatus(ResultStatus.FIRSTROUND.toString());
+						if (isPass) {
+							cv.getFinalResult().setResultStatus(Round.ROUND1.toString());
 						} else {
-							cv.getFinalResult().setResultStatus(ResultStatus.NOTPASS.toString());
+							cv.getFinalResult().setResultStatus(Round.NOT_PASS.toString());
 						}
 					} else
 						throw new CustomNotFoundException(CustomError.builder().code("403")
@@ -173,17 +171,17 @@ public class CVServiceImpl implements CVService {
 						return true;
 				}
 				if (jwtTokenUtil.checkPermissionAccount(curAcc, AccountRole.HRMANAGER)) {
-					if (resultStatus.toLowerCase().equals(ResultStatus.FIRSTROUND.toString().toLowerCase())) {
-						if (!checkNumNoteToEvaluate(cv, Round.ROUND2, 6))
+					if (resultStatus.toLowerCase().equals(Round.ROUND1.toString().toLowerCase())) {
+						if (!checkNumNoteToEvaluate(cv, Round.ROUND2, 5))
 							throw new CustomNotFoundException(CustomError.builder().code("403")
-									.message("Not enough note(6 note) to evaluate, cannot evaluate cv...").build());
+									.message("Not enough note(5 note) to evaluate, cannot evaluate cv...").build());
 						if (!checkAvailableScheduleDetail(cv, Round.ROUND2))
 							throw new CustomNotFoundException(CustomError.builder().code("403")
 									.message("Still on meeting, cannot evaluate cv...").build());
-						if (evaluate.isPass()) {
-							cv.getFinalResult().setResultStatus(ResultStatus.PASS.toString());
+						if (isPass) {
+							cv.getFinalResult().setResultStatus(Round.PASS.toString());
 						} else {
-							cv.getFinalResult().setResultStatus(ResultStatus.NOTPASS.toString());
+							cv.getFinalResult().setResultStatus(Round.NOT_PASS.toString());
 						}
 					} else
 						throw new CustomNotFoundException(CustomError.builder().code("403")
@@ -207,7 +205,7 @@ public class CVServiceImpl implements CVService {
 					count++;
 				}
 			}
-			if (count == num)
+			if (count >= num)
 				return true;
 		}
 		return false;
