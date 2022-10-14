@@ -18,7 +18,7 @@ public class Post {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "post_id")
-    private int postID;
+    private Integer postID;
     @Column(name = "start_time", nullable = false)
     private Timestamp startTime;
     @Column(name = "description_post", nullable = false, length = 2084)
