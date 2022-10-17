@@ -17,10 +17,9 @@ import lombok.Setter;
 @NoArgsConstructor
 public class NoteRequest {
 	@Nullable
-	private int id;
+	private Integer id;
 	private String message;
 	private int point;
 	private int scheduleId;
-	private int cvId;
-	
+	private int cvId;	
 }

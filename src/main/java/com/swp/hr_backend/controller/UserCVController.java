@@ -43,9 +43,9 @@ public class UserCVController {
     @GetMapping(value="/view")
     public ResponseEntity<List<UserCVUploadResponse>> viewCV() throws CustomNotFoundException {
         List<UserCVUploadResponse> userCVUploadResponses = cvService.viewCV();
-        if(userCVUploadResponses == null){
-            throw new CustomNotFoundException(CustomError.builder().code("404").message("Not found any CV appropriate").build());
-        }
+        // if(userCVUploadResponses == null){
+        //     throw new CustomNotFoundException(CustomError.builder().code("404").message("Not found any CV appropriate").build());
+        // }
         return ResponseEntity.ok(userCVUploadResponses);
     }
     
