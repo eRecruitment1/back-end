@@ -4,10 +4,13 @@ import com.swp.hr_backend.exception.custom.CustomDuplicateFieldException;
 import com.swp.hr_backend.model.CustomError;
 import com.swp.hr_backend.model.mapper.ObjectMapper;
 import com.swp.hr_backend.model.request.ProfileRequest;
+import com.swp.hr_backend.model.response.AccountResponse;
 import com.swp.hr_backend.model.response.ProfileResponse;
 
 import java.util.List;
+import java.util.Optional;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import com.swp.hr_backend.entity.Account;
@@ -102,6 +105,15 @@ public class AccountServiceImpl implements AccountService {
 			return cand;
 		}
 		return null;
+	}
+
+	@Override
+	public AccountResponse getAccountByID(String id) {
+	    Optional<Account> account = accountRepository.findById(id);
+		if(account.isEmpty()){
+			return null;
+		}
+		return ObjectMapper.accountToAccountResponse(account.get());
 	}
 
 }

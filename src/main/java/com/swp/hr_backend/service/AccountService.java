@@ -5,6 +5,7 @@ import com.swp.hr_backend.entity.Account;
 import com.swp.hr_backend.entity.Candidate;
 import com.swp.hr_backend.exception.custom.CustomDuplicateFieldException;
 import com.swp.hr_backend.model.request.ProfileRequest;
+import com.swp.hr_backend.model.response.AccountResponse;
 import com.swp.hr_backend.model.response.ProfileResponse;
 
 public interface AccountService {
@@ -18,4 +19,6 @@ public interface AccountService {
     public List<Account> getListAccount();
     
     public Candidate createNewCandidate(Candidate acc);
+
+    public AccountResponse getAccountByID(String id);
 }
