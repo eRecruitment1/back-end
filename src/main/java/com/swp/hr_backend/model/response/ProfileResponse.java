@@ -17,4 +17,5 @@ public class ProfileResponse {
     private String email;
     private String phone;
     private boolean gender;
+    private boolean enabled;
 }

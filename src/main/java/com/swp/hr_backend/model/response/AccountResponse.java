@@ -23,4 +23,6 @@ public class AccountResponse {
     private String phone;
     private boolean gender;
     private boolean status;
+    private boolean enabled;
+    private String tokenVerify;
 }

@@ -5,6 +5,7 @@ import com.swp.hr_backend.exception.custom.CustomNotFoundException;
 import com.swp.hr_backend.exception.custom.CustomUnauthorizedException;
 import com.swp.hr_backend.model.CustomError;
 import com.swp.hr_backend.model.request.CreateScheduleRequest;
+import com.swp.hr_backend.model.request.DeleteScheduleRequest;
 import com.swp.hr_backend.model.request.UpdateScheduleRequest;
 import com.swp.hr_backend.model.response.ScheduleDetailResponse;
 import com.swp.hr_backend.service.ScheduleService;
@@ -40,6 +41,14 @@ public class ScheduleController {
     public ResponseEntity<ScheduleDetailResponse> updateSchedule(@RequestBody UpdateScheduleRequest updateScheduleRequest)
             throws CustomBadRequestException, CustomUnauthorizedException{
         ScheduleDetailResponse scheduleDetailResponse = scheduleService.updateSchedule(updateScheduleRequest);
+        if (scheduleDetailResponse == null) throw new CustomBadRequestException(CustomError.builder().code("403").message("Schedule is null").build());
+        return ResponseEntity.ok(scheduleDetailResponse);
+    }
+
+    @DeleteMapping("/delete")
+    public ResponseEntity<ScheduleDetailResponse> deleteSchedule(@RequestBody DeleteScheduleRequest deleteScheduleRequest)
+            throws CustomBadRequestException, CustomUnauthorizedException{
+        ScheduleDetailResponse scheduleDetailResponse = scheduleService.deleteSchedule(deleteScheduleRequest);
         if (scheduleDetailResponse == null) throw new CustomBadRequestException(CustomError.builder().code("403").message("Schedule is null").build());
         return ResponseEntity.ok(scheduleDetailResponse);
     }
