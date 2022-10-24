@@ -1,4 +1,4 @@
-package com.swp.hr_backend.Config;
+package com.swp.hr_backend.config;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
