@@ -44,4 +44,8 @@ public class Account {
     private boolean gender;
     @Column(name = "status", nullable = false)
     private boolean status;
+    @Column(name = "enabled", nullable = false)
+    private boolean enabled;
+    @Column(name = "token_verify", nullable = false, length = 64)
+    private String tokenVerify;
 }

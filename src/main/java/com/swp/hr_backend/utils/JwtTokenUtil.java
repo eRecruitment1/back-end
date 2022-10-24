@@ -11,6 +11,7 @@ import com.swp.hr_backend.service.AccountService;
 import com.swp.hr_backend.service.EmployeeService;
 import com.swp.hr_backend.service.RoleService;
 
+import org.springframework.context.annotation.Lazy;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;

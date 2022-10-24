@@ -33,7 +33,9 @@ public class WebSecurityConfig {
                 .antMatchers(HttpMethod.POST, "/api/refresh-token").permitAll()
                 .antMatchers("/api/post/getlastest").permitAll()
                 .antMatchers(HttpMethod.GET, "/api/post/**").permitAll()// to be continue
-                .antMatchers("/api/post/getlastest").permitAll() // to be continu
+                .antMatchers("/api/post/getlastest").permitAll() // to be continue
+                .antMatchers("/api/account/signup").permitAll()
+                .antMatchers("/api/account/verify/**").permitAll()
                 .antMatchers("/api/**").authenticated()
                 .and().sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS);

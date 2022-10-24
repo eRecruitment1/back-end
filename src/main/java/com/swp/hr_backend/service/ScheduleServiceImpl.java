@@ -8,6 +8,7 @@ import com.swp.hr_backend.exception.custom.CustomUnauthorizedException;
 import com.swp.hr_backend.model.CustomError;
 import com.swp.hr_backend.model.mapper.ObjectMapper;
 import com.swp.hr_backend.model.request.CreateScheduleRequest;
+import com.swp.hr_backend.model.request.DeleteScheduleRequest;
 import com.swp.hr_backend.model.request.UpdateScheduleRequest;
 import com.swp.hr_backend.model.response.ScheduleDetailResponse;
 import com.swp.hr_backend.repository.*;
@@ -19,6 +20,7 @@ import org.springframework.stereotype.Service;
 
 import java.sql.Date;
 import java.sql.Time;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -35,6 +37,7 @@ public class ScheduleServiceImpl implements ScheduleService{
 
     @Override
     public List<ScheduleDetailResponse> getSchedule() throws CustomUnauthorizedException, CustomNotFoundException{
+        loadStatusSchedule();
         List<ScheduleDetail> scheduleDetails = new ArrayList<>();
         List<ScheduleDetailResponse> scheduleDetailResponses = new ArrayList<>();
         Account acc = jwtTokenUtil.loggedAccount();
@@ -91,6 +94,7 @@ public class ScheduleServiceImpl implements ScheduleService{
     @Override
     public ScheduleDetailResponse createSchedule(CreateScheduleRequest createScheduleRequest)
             throws CustomUnauthorizedException, CustomBadRequestException {
+        loadStatusSchedule();
         Account acc = jwtTokenUtil.loggedAccount();
         if (jwtTokenUtil.checkPermissionAccount(acc, AccountRole.HREMPLOYEE) || jwtTokenUtil.checkPermissionAccount(acc, AccountRole.HRMANAGER)) {
             checkValidRequest(createScheduleRequest.getRound(), createScheduleRequest.getCvID(), createScheduleRequest.getInterviewerIDs());
@@ -185,6 +189,7 @@ public class ScheduleServiceImpl implements ScheduleService{
 
     @Override
     public ScheduleDetailResponse updateSchedule(UpdateScheduleRequest updateScheduleRequest) throws CustomUnauthorizedException, CustomBadRequestException {
+        loadStatusSchedule();
         Account acc = jwtTokenUtil.loggedAccount();
         if (jwtTokenUtil.checkPermissionAccount(acc, AccountRole.HREMPLOYEE) || jwtTokenUtil.checkPermissionAccount(acc, AccountRole.HRMANAGER)) {
             Schedule schedule = scheduleRepository.findByDate(updateScheduleRequest.getDate());
@@ -227,5 +232,35 @@ public class ScheduleServiceImpl implements ScheduleService{
             } else throw new CustomBadRequestException(CustomError.builder().code("403").message("Schedule has been done, can not update").build());
         } else throw new CustomUnauthorizedException(CustomError.builder().code("unauthorized")
                 .message("Access denied, you need to be HREMPLOYEE/ HRMANAGER to do this!").build());
+    }
+
+    public ScheduleDetailResponse deleteSchedule(DeleteScheduleRequest deleteScheduleRequest) throws CustomUnauthorizedException, CustomBadRequestException{
+        loadStatusSchedule();
+        Account acc = jwtTokenUtil.loggedAccount();
+        if (jwtTokenUtil.checkPermissionAccount(acc, AccountRole.HREMPLOYEE) || jwtTokenUtil.checkPermissionAccount(acc, AccountRole.HRMANAGER)){
+            List<ScheduleDetail> scheduleDetail = scheduleDetailRepository.findByScheduleDetailIDScheduleIDAndScheduleDetailIDCvID(deleteScheduleRequest.getScheduleID(), deleteScheduleRequest.getCvID());
+            if (scheduleDetail == null) throw new CustomBadRequestException(CustomError.builder().code("403").message("Schedule is not exist to delete").build());
+            List<String> interviewerIDs = new ArrayList<>();
+            if (scheduleDetail.get(0).isStatus()) throw new CustomBadRequestException(CustomError.builder().code("403").message("Schedule has been done, cannot delete").build());
+            for (ScheduleDetail sd : scheduleDetail) {
+                interviewerIDs.add(sd.getInterviewer().getAccountID());
+                scheduleDetailRepository.deleteByScheduleIDAndCVIDAndInterviewerID(deleteScheduleRequest.getScheduleID(), deleteScheduleRequest.getCvID(), sd.getInterviewer().getAccountID());
+            }
+            return ObjectMapper.scheduleToScheduleDetailResponse(scheduleDetail.get(0).getSchedule(), scheduleDetail.get(0), interviewerIDs);
+        }else throw new CustomUnauthorizedException(CustomError.builder().code("unauthorized")
+                .message("Access denied, you need to be HREMPLOYEE/ HRMANAGER to do this!").build());
+    }
+
+    public void loadStatusSchedule() {
+        Iterable<ScheduleDetail> all = scheduleDetailRepository.findAll();
+        for (ScheduleDetail scheduleDetail : all) {
+            Date date = scheduleDetail.getSchedule().getDate();
+            Time endTime = scheduleDetail.getEndTime();
+            String scheTime = date.toString() + "T" + endTime.toString();
+            LocalDateTime scheDate = LocalDateTime.parse(scheTime);
+            if (scheDate.isAfter(LocalDateTime.now())) {
+                scheduleDetail.setStatus(false);
+            } else scheduleDetail.setStatus(true);
+        }
     }
 }

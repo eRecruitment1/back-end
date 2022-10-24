@@ -26,4 +26,5 @@ public class LoginResponse {
     private boolean status;
     private String token;
     private String refreshToken;
+    private boolean enabled;
 }

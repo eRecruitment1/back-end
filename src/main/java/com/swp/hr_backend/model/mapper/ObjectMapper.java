@@ -19,7 +19,7 @@ public class ObjectMapper {
 		LoginResponse loginResponse = LoginResponse.builder().id(account.getAccountID()).username(account.getUsername())
 				.firstName(account.getFirstname()).lastName(account.getLastname()).email(account.getEmail())
 				.gender(account.isGender()).status(account.isStatus()).phone(account.getPhone())
-				.urlImg(account.getUrlImg()).build();
+				.urlImg(account.getUrlImg()).enabled(account.isEnabled()).build();
 		return loginResponse;
 
 	}
@@ -28,7 +28,7 @@ public class ObjectMapper {
 		ProfileResponse profileResponse = ProfileResponse.builder().id(account.getAccountID())
 				.username(account.getUsername()).firstName(account.getFirstname()).lastName(account.getLastname())
 				.email(account.getEmail()).gender(account.isGender()).phone(account.getPhone())
-				.urlImg(account.getUrlImg()).build();
+				.urlImg(account.getUrlImg()).enabled(account.isEnabled()).build();
 		return profileResponse;
 
 	}
@@ -114,7 +114,7 @@ public class ObjectMapper {
 		AccountResponse accountResponse = AccountResponse.builder().id(account.getAccountID()).username(account.getUsername())
 				.firstName(account.getFirstname()).lastName(account.getLastname()).email(account.getEmail())
 				.gender(account.isGender()).status(account.isStatus()).phone(account.getPhone())
-				.urlImg(account.getUrlImg()).build();
+				.urlImg(account.getUrlImg()).enabled(account.isEnabled()).tokenVerify(account.getTokenVerify()).build();
 		return accountResponse;
 
 	}

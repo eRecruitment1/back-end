@@ -1,16 +1,35 @@
 package com.swp.hr_backend.service;
 
+import com.swp.hr_backend.entity.Employee;
+import com.swp.hr_backend.entity.Role;
+import com.swp.hr_backend.exception.custom.CustomBadRequestException;
 import com.swp.hr_backend.exception.custom.CustomDuplicateFieldException;
+import com.swp.hr_backend.exception.custom.CustomNotFoundException;
+import com.swp.hr_backend.exception.custom.CustomUnauthorizedException;
 import com.swp.hr_backend.model.CustomError;
 import com.swp.hr_backend.model.mapper.ObjectMapper;
+import com.swp.hr_backend.model.request.DataMailRequest;
 import com.swp.hr_backend.model.request.ProfileRequest;
+import com.swp.hr_backend.model.request.SignupRequest;
 import com.swp.hr_backend.model.response.AccountResponse;
 import com.swp.hr_backend.model.response.ProfileResponse;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
+import com.swp.hr_backend.repository.EmployeeRepository;
+import com.swp.hr_backend.repository.RoleRepository;
+import com.swp.hr_backend.utils.AccountRole;
+import com.swp.hr_backend.utils.JwtTokenUtil;
+import com.swp.hr_backend.utils.MailBody;
+import com.swp.hr_backend.utils.MailSubjectConstant;
+import net.bytebuddy.utility.RandomString;
+import org.hibernate.validator.internal.util.stereotypes.Lazy;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import com.swp.hr_backend.entity.Account;
@@ -21,11 +40,16 @@ import com.swp.hr_backend.repository.CandidateRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.util.StringUtils;
 
+import javax.mail.MessagingException;
+
 @Service
 @RequiredArgsConstructor
 public class AccountServiceImpl implements AccountService {
 	private final AccountRepository accountRepository;
 	private final CandidateRepository CandRepository;
+	private final RoleRepository roleRepository;
+	private final EmployeeRepository employeeRepository;
+	private final MailService mailService;
 
 	@Override
 	public Account findAccountByUsername(String username) {
@@ -68,12 +92,12 @@ public class AccountServiceImpl implements AccountService {
 
 		boolean gender = profileRequest.isGender();
 		account.setGender(gender);
-		checkDuplicate(null, phone);
+		checkDuplicate(null, phone, null);
 		account = accountRepository.save(account);
 		return ObjectMapper.accountToProfileResponse(account);
 	}
 
-	public void checkDuplicate(String email, String phone) throws CustomDuplicateFieldException {
+	public void checkDuplicate(String email, String phone, String username) throws CustomDuplicateFieldException {
 		Account duplicate;
 
 		if (email != null) {
@@ -89,6 +113,14 @@ public class AccountServiceImpl implements AccountService {
 			if (duplicate != null) {
 				throw new CustomDuplicateFieldException(
 						CustomError.builder().code("duplicate").field("phone").message("Duplicate field").build());
+			}
+		}
+
+		if (username != null) {
+			duplicate = accountRepository.findByUsername(username);
+			if (duplicate != null) {
+				throw new CustomDuplicateFieldException(
+						CustomError.builder().code("duplicate").field("username").message("Duplicate field").build());
 			}
 		}
 	}
@@ -115,5 +147,98 @@ public class AccountServiceImpl implements AccountService {
 		}
 		return ObjectMapper.accountToAccountResponse(account.get());
 	}
+
+	@Override
+	public AccountResponse signUp(SignupRequest signupRequest) throws CustomDuplicateFieldException, MessagingException {
+		checkDuplicate(signupRequest.getEmail(), signupRequest.getPhone(), signupRequest.getUsername());
+		Candidate candidate = new Candidate();
+		candidate.setAccountID(UUID.randomUUID().toString());
+		candidate.setUsername(signupRequest.getUsername());
+		candidate.setPassword(signupRequest.getPassword());
+		candidate.setEmail(signupRequest.getEmail());
+		candidate.setPhone(signupRequest.getPhone());
+		candidate.setFirstname(signupRequest.getFirstname());
+		candidate.setLastname(signupRequest.getLastname());
+		candidate.setUrlImg(signupRequest.getUrlImg());
+		candidate.setGender(signupRequest.isGender());
+		candidate.setStatus(true);
+		DataMailRequest dataMailRequest = new DataMailRequest();
+		dataMailRequest.setTo(signupRequest.getEmail());
+		dataMailRequest.setSubject(MailSubjectConstant.REGISTER);
+		String token = RandomString.make(64);
+		candidate.setTokenVerify(token);
+		candidate.setEnabled(false);
+		candidate = CandRepository.save(candidate);
+		String link = "https://we-hr-system.herokuapp.com/api/account/verify?token=" + token;
+		mailService.sendHtmlMail(dataMailRequest, MailBody.VerifyRegistration(signupRequest.getFirstname(), link));
+		return ObjectMapper.accountToAccountResponse(candidate);
+	}
+
+	@Override
+	public AccountResponse createNewEmployee(SignupRequest signupRequest) throws CustomDuplicateFieldException, MessagingException, CustomUnauthorizedException {
+		checkDuplicate(signupRequest.getEmail(), signupRequest.getPhone(), signupRequest.getUsername());
+		Account acc = loggedAccount();
+		if (employeeRepository.findByAccountID(acc.getAccountID())!=null && employeeRepository.findByAccountID(acc.getAccountID()).getRole().getRoleName().equals(AccountRole.ADMIN.toString())) {
+			Employee employee = new Employee();
+			employee.setAccountID(UUID.randomUUID().toString());
+			employee.setUsername(signupRequest.getUsername());
+			employee.setPassword(signupRequest.getPassword());
+			employee.setEmail(signupRequest.getEmail());
+			employee.setPhone(signupRequest.getPhone());
+			employee.setFirstname(signupRequest.getFirstname());
+			employee.setLastname(signupRequest.getLastname());
+			employee.setUrlImg(signupRequest.getUrlImg());
+			employee.setGender(signupRequest.isGender());
+			employee.setRole(roleRepository.findByRoleID(signupRequest.getRoleID()));
+			employee.setStatus(true);
+			DataMailRequest dataMailRequest = new DataMailRequest();
+			dataMailRequest.setTo(signupRequest.getEmail());
+			dataMailRequest.setSubject(MailSubjectConstant.REGISTER);
+			String token = RandomString.make(64);
+			employee.setTokenVerify(token);
+			employee.setEnabled(false);
+			employee = employeeRepository.save(employee);
+			String link = "https://we-hr-system.herokuapp.com/api/account/verify?token=" + token;
+			mailService.sendHtmlMail(dataMailRequest, MailBody.VerifyEmployee(signupRequest.getFirstname(), link));
+			return ObjectMapper.accountToAccountResponse(employee);
+		} else throw new CustomUnauthorizedException(CustomError.builder().code("unauthorized")
+				.message("Access denied, you need to be ADMIN to do this!").build());
+	}
+
+	@Override
+	public String verify(String tokenVerify) throws CustomNotFoundException {
+		Account acc = accountRepository.findByTokenVerify(tokenVerify);
+		if (acc == null)
+			throw new CustomNotFoundException(CustomError.builder().code("404").message("not found token").build());
+		if (acc.isEnabled()) return "This account has been already verified before.";
+		acc.setEnabled(true);
+		accountRepository.save(acc);
+		return "Verified";
+	}
+
+	@Override
+	public String sendMailVerify() throws MessagingException, CustomNotFoundException{
+		Account account = loggedAccount();
+		if (account == null)
+			throw new CustomNotFoundException(CustomError.builder().code("404").message("not found token").build());
+		if (account.isEnabled()) return "This account has been already verified before.";
+		DataMailRequest dataMailRequest = new DataMailRequest();
+		dataMailRequest.setTo(account.getEmail());
+		dataMailRequest.setSubject(MailSubjectConstant.REGISTER);
+		String link = "https://we-hr-system.herokuapp.com/api/account/verify?token=" + account.getTokenVerify();
+		mailService.sendHtmlMail(dataMailRequest, MailBody.VerifyRegistration(account.getFirstname(), link));
+		return "Sent";
+	}
+
+	public Account loggedAccount() {
+		Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+		if (principal instanceof UserDetails) {
+			String username = ((UserDetails) principal).getUsername();
+			Account account = accountRepository.findByUsername(username);
+			return account;
+		}
+		return null;
+	}
+
 
 }
