@@ -2,10 +2,6 @@ package com.swp.hr_backend.model.request;
 
 import org.springframework.lang.Nullable;
 
-import com.swp.hr_backend.model.response.NoteResponse;
-
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
