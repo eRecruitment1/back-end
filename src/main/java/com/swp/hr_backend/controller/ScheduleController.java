@@ -37,7 +37,7 @@ public class ScheduleController {
         return ResponseEntity.ok(scheduleResponses);
     }
 
-    @RequestMapping("/update")
+    @PostMapping("/update")
     public ResponseEntity<ScheduleDetailResponse> updateSchedule(@RequestBody UpdateScheduleRequest updateScheduleRequest)
             throws CustomBadRequestException, CustomUnauthorizedException{
         ScheduleDetailResponse scheduleDetailResponse = scheduleService.updateSchedule(updateScheduleRequest);
