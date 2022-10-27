@@ -2,25 +2,29 @@ package com.swp.hr_backend.controller;
 
 import java.util.List;
 
+import javax.mail.MessagingException;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.swp.hr_backend.entity.Account;
 import com.swp.hr_backend.exception.custom.CustomBadRequestException;
 import com.swp.hr_backend.exception.custom.CustomDuplicateFieldException;
 import com.swp.hr_backend.exception.custom.CustomNotFoundException;
 import com.swp.hr_backend.exception.custom.CustomUnauthorizedException;
 import com.swp.hr_backend.model.CustomError;
 import com.swp.hr_backend.model.request.SignupRequest;
-import com.swp.hr_backend.model.response.ScheduleDetailResponse;
-import com.swp.hr_backend.utils.JwtTokenUtil;
-import org.springframework.data.repository.query.Param;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import com.swp.hr_backend.entity.Account;
 import com.swp.hr_backend.model.response.AccountResponse;
 import com.swp.hr_backend.service.AccountService;
 
 import lombok.RequiredArgsConstructor;
-
-import javax.mail.MessagingException;
 
 @RequestMapping("/api/account")
 @RestController
@@ -68,4 +72,14 @@ public class AccountController {
 	public String sendMailVerify() throws MessagingException, CustomNotFoundException{
 		return accService.sendMailVerify();
 	}
+	@GetMapping("/getRoleEmployee")
+	public ResponseEntity<List<AccountResponse>> getEmployee() throws CustomNotFoundException{
+		List<AccountResponse> accountResponses = null;
+		accountResponses = accService.getEmployee();
+		if(accountResponses.isEmpty()){
+			throw new CustomNotFoundException(CustomError.builder().code("404").message("Not Found Anything").build());
+		}
+		return ResponseEntity.ok(accountResponses);
+	}
+	
 }

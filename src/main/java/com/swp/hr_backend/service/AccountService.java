@@ -34,4 +34,5 @@ public interface AccountService {
     public String verify(String tokenVerify) throws CustomNotFoundException;
 
     public String sendMailVerify() throws MessagingException, CustomNotFoundException;
+    public List<AccountResponse> getEmployee();
 }

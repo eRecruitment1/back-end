@@ -1,8 +1,21 @@
 package com.swp.hr_backend.service;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
+import javax.mail.MessagingException;
+
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
+
+import com.swp.hr_backend.entity.Account;
+import com.swp.hr_backend.entity.Candidate;
 import com.swp.hr_backend.entity.Employee;
 import com.swp.hr_backend.entity.Role;
-import com.swp.hr_backend.exception.custom.CustomBadRequestException;
 import com.swp.hr_backend.exception.custom.CustomDuplicateFieldException;
 import com.swp.hr_backend.exception.custom.CustomNotFoundException;
 import com.swp.hr_backend.exception.custom.CustomUnauthorizedException;
@@ -13,34 +26,16 @@ import com.swp.hr_backend.model.request.ProfileRequest;
 import com.swp.hr_backend.model.request.SignupRequest;
 import com.swp.hr_backend.model.response.AccountResponse;
 import com.swp.hr_backend.model.response.ProfileResponse;
-
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
-
+import com.swp.hr_backend.repository.AccountRepository;
+import com.swp.hr_backend.repository.CandidateRepository;
 import com.swp.hr_backend.repository.EmployeeRepository;
 import com.swp.hr_backend.repository.RoleRepository;
 import com.swp.hr_backend.utils.AccountRole;
-import com.swp.hr_backend.utils.JwtTokenUtil;
 import com.swp.hr_backend.utils.MailBody;
 import com.swp.hr_backend.utils.MailSubjectConstant;
-import net.bytebuddy.utility.RandomString;
-import org.hibernate.validator.internal.util.stereotypes.Lazy;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.stereotype.Service;
-
-import com.swp.hr_backend.entity.Account;
-import com.swp.hr_backend.entity.Candidate;
-import com.swp.hr_backend.repository.AccountRepository;
-import com.swp.hr_backend.repository.CandidateRepository;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.util.StringUtils;
-
-import javax.mail.MessagingException;
+import net.bytebuddy.utility.RandomString;
 
 @Service
 @RequiredArgsConstructor
@@ -238,6 +233,19 @@ public class AccountServiceImpl implements AccountService {
 			return account;
 		}
 		return null;
+	}
+
+	@Override
+	public List<AccountResponse> getEmployee() {
+		List<AccountResponse> accountResponses = new ArrayList<>();
+		Role role = roleRepository.findByRoleID(1);
+		List<Employee> employees = employeeRepository.findByRole(role);
+		for (Employee employee : employees) {
+			Account account = accountRepository.findById(employee.getAccountID()).get();
+			AccountResponse accountResponse = ObjectMapper.accountToAccountResponse(account);
+			accountResponses.add(accountResponse);
+		}
+		return accountResponses;
 	}
 
 
