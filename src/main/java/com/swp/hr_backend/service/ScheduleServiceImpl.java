@@ -8,16 +8,16 @@ import com.swp.hr_backend.exception.custom.CustomUnauthorizedException;
 import com.swp.hr_backend.model.CustomError;
 import com.swp.hr_backend.model.mapper.ObjectMapper;
 import com.swp.hr_backend.model.request.CreateScheduleRequest;
+import com.swp.hr_backend.model.request.DataMailRequest;
 import com.swp.hr_backend.model.request.DeleteScheduleRequest;
 import com.swp.hr_backend.model.request.UpdateScheduleRequest;
 import com.swp.hr_backend.model.response.ScheduleDetailResponse;
 import com.swp.hr_backend.repository.*;
-import com.swp.hr_backend.utils.AccountRole;
-import com.swp.hr_backend.utils.JwtTokenUtil;
-import com.swp.hr_backend.utils.Round;
+import com.swp.hr_backend.utils.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import javax.mail.MessagingException;
 import java.sql.Date;
 import java.sql.Time;
 import java.time.LocalDateTime;
@@ -34,6 +34,7 @@ public class ScheduleServiceImpl implements ScheduleService{
     private final EmployeeRepository employeeRepository;
     private final FinalResultRepository finalResultRepository;
     private final JwtTokenUtil jwtTokenUtil;
+    private final MailService mailService;
 
     @Override
     public List<ScheduleDetailResponse> getSchedule() throws CustomUnauthorizedException, CustomNotFoundException{
@@ -93,7 +94,7 @@ public class ScheduleServiceImpl implements ScheduleService{
 
     @Override
     public ScheduleDetailResponse createSchedule(CreateScheduleRequest createScheduleRequest)
-            throws CustomUnauthorizedException, CustomBadRequestException {
+            throws CustomUnauthorizedException, CustomBadRequestException, MessagingException {
         loadStatusSchedule();
         Account acc = jwtTokenUtil.loggedAccount();
         if (jwtTokenUtil.checkPermissionAccount(acc, AccountRole.HREMPLOYEE) || jwtTokenUtil.checkPermissionAccount(acc, AccountRole.HRMANAGER)) {
@@ -129,6 +130,19 @@ public class ScheduleServiceImpl implements ScheduleService{
                 scheduleDetailRepository.save(scheduleDetail);
             }
             if (scheduleDetails.size()!=0){
+                DataMailRequest dataMailRequest = new DataMailRequest();
+                dataMailRequest.setSubject(MailSubjectConstant.INTERVIEWER_SCHEDULE);
+                for (ScheduleDetail sd : scheduleDetails) {
+                    if (sd.getInterviewer().isEnabled()) {
+                        dataMailRequest.setTo(sd.getInterviewer().getEmail());
+                        mailService.sendHtmlMail(dataMailRequest, MailBody.interviewSchedule(sd.getInterviewer().getFirstname(), sd.getSchedule().getDate(), sd.getStartTime(), sd.getEndTime(), sd.getUrlMeeting(), sd.getRoundNum()));
+                    }
+                }
+                if (userCV.getCandidate().isEnabled()) {
+                    dataMailRequest.setSubject(MailSubjectConstant.CANDIDATE_SCHEDULE);
+                    dataMailRequest.setTo(userCV.getCandidate().getEmail());
+                    mailService.sendHtmlMail(dataMailRequest, MailBody.candidateSchedule(userCV.getCandidate().getFirstname(), createScheduleRequest.getDate(), startTime, endTime, urlMeeting, roundNum));
+                }
                 return ObjectMapper.scheduleToScheduleDetailResponse(schedule, new ScheduleDetail(schedule, userCV, status, startTime, endTime, urlMeeting, roundNum), createScheduleRequest.getInterviewerIDs());
             } else throw new CustomBadRequestException(CustomError.builder().code("403").message("Can not create schedule").build());
         } else throw new CustomUnauthorizedException(CustomError.builder().code("unauthorized")
@@ -188,7 +202,7 @@ public class ScheduleServiceImpl implements ScheduleService{
     }
 
     @Override
-    public ScheduleDetailResponse updateSchedule(UpdateScheduleRequest updateScheduleRequest) throws CustomUnauthorizedException, CustomBadRequestException {
+    public ScheduleDetailResponse updateSchedule(UpdateScheduleRequest updateScheduleRequest) throws CustomUnauthorizedException, CustomBadRequestException, MessagingException {
         loadStatusSchedule();
         Account acc = jwtTokenUtil.loggedAccount();
         if (jwtTokenUtil.checkPermissionAccount(acc, AccountRole.HREMPLOYEE) || jwtTokenUtil.checkPermissionAccount(acc, AccountRole.HRMANAGER)) {
@@ -215,41 +229,57 @@ public class ScheduleServiceImpl implements ScheduleService{
                 if (roundNum == null || roundNum.isEmpty()) roundNum = currentSchedule.get(0).getRoundNum();
                 UserCV userCV = userCVRepository.findByCvID(updateScheduleRequest.getNewCVID());
                 for (ScheduleDetail s : currentSchedule) {
-                    ScheduleDetailID scheduleDetailID = s.getScheduleDetailID();
-//                    scheduleDetailRepository.deleteScheduleDetailByScheduleAndAndUserCV(currentSchedule.get(0).getSchedule(), userCV);
-//                    scheduleDetailRepository.delete(s);
-//                    scheduleDetailRepository.deleteScheduleDetailByScheduleDetailID(scheduleDetailID);
                     scheduleDetailRepository.deleteByScheduleIDAndCVIDAndInterviewerID(s.getScheduleDetailID().getScheduleID(),s.getUserCV().getCvID(),s.getInterviewer().getAccountID());
                 }
-//                scheduleDetailRepository.deleteByScheduleIDAndCVID(10,3);
-                for (String interviewerID : interviewerIDs) {
+                for (String interviewerID : updateScheduleRequest.getNewInterviewerIDs()) {
                     ScheduleDetail scheduleDetail = new ScheduleDetail(schedule, userCV, status, startTime, endTime, urlMeeting, roundNum);
                     scheduleDetail.setInterviewer(employeeRepository.findByAccountID(interviewerID));
                     scheduleDetail.setScheduleDetailID(new ScheduleDetailID(schedule.getScheduleID(), interviewerID, updateScheduleRequest.getNewCVID()));
-                    scheduleDetailRepository.save(scheduleDetail);
+                    scheduleDetail = scheduleDetailRepository.save(scheduleDetail);
+                    if (scheduleDetail == null) return null;
                 }
+                sendMailForUpdateSchedule(updateScheduleRequest, interviewerIDs, currentSchedule.get(0).getRoundNum());
                 return ObjectMapper.scheduleToScheduleDetailResponse(schedule, new ScheduleDetail(schedule, userCV, status, startTime, endTime, urlMeeting, roundNum), updateScheduleRequest.getNewInterviewerIDs());
             } else throw new CustomBadRequestException(CustomError.builder().code("403").message("Schedule has been done, can not update").build());
         } else throw new CustomUnauthorizedException(CustomError.builder().code("unauthorized")
                 .message("Access denied, you need to be HREMPLOYEE/ HRMANAGER to do this!").build());
     }
 
-    public ScheduleDetailResponse deleteSchedule(DeleteScheduleRequest deleteScheduleRequest) throws CustomUnauthorizedException, CustomBadRequestException{
+    @Override
+    public ScheduleDetailResponse deleteSchedule(DeleteScheduleRequest deleteScheduleRequest) throws CustomUnauthorizedException, CustomBadRequestException, MessagingException{
         loadStatusSchedule();
         Account acc = jwtTokenUtil.loggedAccount();
         if (jwtTokenUtil.checkPermissionAccount(acc, AccountRole.HREMPLOYEE) || jwtTokenUtil.checkPermissionAccount(acc, AccountRole.HRMANAGER)){
             List<ScheduleDetail> scheduleDetail = scheduleDetailRepository.findByScheduleDetailIDScheduleIDAndScheduleDetailIDCvID(deleteScheduleRequest.getScheduleID(), deleteScheduleRequest.getCvID());
             if (scheduleDetail == null) throw new CustomBadRequestException(CustomError.builder().code("403").message("Schedule is not exist to delete").build());
             List<String> interviewerIDs = new ArrayList<>();
+            Date date = scheduleDetail.get(0).getSchedule().getDate();
+            Time startTime = scheduleDetail.get(0).getStartTime();
+            Time endTime = scheduleDetail.get(0).getEndTime();
             if (scheduleDetail.get(0).isStatus()) throw new CustomBadRequestException(CustomError.builder().code("403").message("Schedule has been done, cannot delete").build());
             for (ScheduleDetail sd : scheduleDetail) {
                 interviewerIDs.add(sd.getInterviewer().getAccountID());
                 scheduleDetailRepository.deleteByScheduleIDAndCVIDAndInterviewerID(deleteScheduleRequest.getScheduleID(), deleteScheduleRequest.getCvID(), sd.getInterviewer().getAccountID());
             }
+            DataMailRequest dataMailRequest = new DataMailRequest();
+            dataMailRequest.setSubject(MailSubjectConstant.DELETE_SCHEDULE);
+            for (String i : interviewerIDs) {
+                Employee e = employeeRepository.findByAccountID(i);
+                if (e.isEnabled()) {
+                    dataMailRequest.setTo(e.getEmail());
+                    mailService.sendHtmlMail(dataMailRequest, MailBody.mailDeleteSchedule(e.getFirstname(), date, startTime, endTime,""));
+                }
+            }
+            if (userCVRepository.findByCvID(deleteScheduleRequest.getCvID()).getCandidate().isEnabled()) {
+                dataMailRequest.setSubject(MailSubjectConstant.CANDIDATE_SCHEDULE);
+                dataMailRequest.setTo(userCVRepository.findByCvID(deleteScheduleRequest.getCvID()).getCandidate().getEmail());
+                mailService.sendHtmlMail(dataMailRequest, MailBody.mailDeleteSchedule(userCVRepository.findByCvID(deleteScheduleRequest.getCvID()).getCandidate().getFirstname(), date, startTime, endTime, "candidate"));
+            }
             return ObjectMapper.scheduleToScheduleDetailResponse(scheduleDetail.get(0).getSchedule(), scheduleDetail.get(0), interviewerIDs);
         }else throw new CustomUnauthorizedException(CustomError.builder().code("unauthorized")
                 .message("Access denied, you need to be HREMPLOYEE/ HRMANAGER to do this!").build());
     }
+
 
     public void loadStatusSchedule() {
         Iterable<ScheduleDetail> all = scheduleDetailRepository.findAll();
@@ -258,9 +288,90 @@ public class ScheduleServiceImpl implements ScheduleService{
             Time endTime = scheduleDetail.getEndTime();
             String scheTime = date.toString() + "T" + endTime.toString();
             LocalDateTime scheDate = LocalDateTime.parse(scheTime);
-            if (scheDate.isAfter(LocalDateTime.now())) {
+            if (scheDate.isAfter(LocalDateTime.now()))
                 scheduleDetail.setStatus(false);
-            } else scheduleDetail.setStatus(true);
+            else scheduleDetail.setStatus(true);
+        }
+    }
+
+    public List<String> getUpdatedInterviewer(UpdateScheduleRequest updateScheduleRequest, List<String> oldInterviewerIDs){
+        List<String> changedInterviewer = new ArrayList<>();
+        for (String id : updateScheduleRequest.getNewInterviewerIDs()) {
+            if (!oldInterviewerIDs.contains(id))
+                changedInterviewer.add(id);
+        }
+        return changedInterviewer;
+    }
+
+    public List<String> getDeletedInterviewer(UpdateScheduleRequest updateScheduleRequest, List<String> oldInterviewerIDs){
+        List<String> deletedInterviewer = new ArrayList<>();
+        for (String id : oldInterviewerIDs) {
+            if (!updateScheduleRequest.getNewInterviewerIDs().contains(id))
+                deletedInterviewer.add(id);
+        }
+        return deletedInterviewer;
+    }
+
+    public void sendMailForUpdateSchedule(UpdateScheduleRequest updateScheduleRequest, List<String> oldInterviewerIDs, String oldRound) throws MessagingException {
+        UserCV newCV = userCVRepository.findByCvID(updateScheduleRequest.getNewCVID());
+        UserCV oldCV = userCVRepository.findByCvID(updateScheduleRequest.getCvID());
+        List<ScheduleDetail> scheduleDetails = scheduleDetailRepository.findByScheduleDetailIDScheduleIDAndScheduleDetailIDCvID(scheduleRepository.findByDate(updateScheduleRequest.getDate()).getScheduleID(), oldCV.getCvID());
+        List<String> changedInterviewer = getUpdatedInterviewer(updateScheduleRequest, oldInterviewerIDs);
+        List<String> deletedInterviewer = getDeletedInterviewer(updateScheduleRequest, oldInterviewerIDs);
+        DataMailRequest dataMailRequest = new DataMailRequest();
+        if (updateScheduleRequest.getNewRoundNum().equals(oldRound)){
+            if (updateScheduleRequest.getNewCVID() != updateScheduleRequest.getNewCVID()) {
+                if (oldCV.getCandidate().isEnabled()) {
+                    dataMailRequest.setSubject(MailSubjectConstant.DELETE_SCHEDULE);
+                    dataMailRequest.setTo(oldCV.getCandidate().getEmail());
+                    mailService.sendHtmlMail(dataMailRequest, MailBody.mailDeleteSchedule(oldCV.getCandidate().getFirstname(), updateScheduleRequest.getDate(), scheduleDetails.get(0).getStartTime(), scheduleDetails.get(0).getEndTime(), "candidate"));
+                }
+                if (newCV.getCandidate().isEnabled()) {
+                    dataMailRequest.setSubject(MailSubjectConstant.CANDIDATE_SCHEDULE);
+                    dataMailRequest.setTo(newCV.getCandidate().getEmail());
+                    mailService.sendHtmlMail(dataMailRequest, MailBody.candidateSchedule(newCV.getCandidate().getFirstname(), updateScheduleRequest.getDate(), scheduleDetails.get(0).getStartTime(), scheduleDetails.get(0).getEndTime(), scheduleDetails.get(0).getUrlMeeting(), oldRound));
+                }
+            }
+            if (changedInterviewer.size() != 0) {
+                dataMailRequest.setSubject(MailSubjectConstant.DELETE_SCHEDULE);
+                for (String di : deletedInterviewer){
+                    if (employeeRepository.findByAccountID(di).isEnabled()) {
+                        dataMailRequest.setTo(employeeRepository.findByAccountID(di).getEmail());
+                        mailService.sendHtmlMail(dataMailRequest, MailBody.mailDeleteSchedule(employeeRepository.findByAccountID(di).getFirstname(), updateScheduleRequest.getDate(), scheduleDetails.get(0).getStartTime(), scheduleDetails.get(0).getEndTime(), ""));
+                    }
+                }
+                dataMailRequest.setSubject(MailSubjectConstant.INTERVIEWER_SCHEDULE);
+                for (String ci : changedInterviewer) {
+                    if (employeeRepository.findByAccountID(ci).isEnabled()) {
+                        dataMailRequest.setTo(employeeRepository.findByAccountID(ci).getEmail());
+                        mailService.sendHtmlMail(dataMailRequest, MailBody.interviewSchedule(employeeRepository.findByAccountID(ci).getFirstname(), updateScheduleRequest.getDate(), scheduleDetails.get(0).getStartTime(), scheduleDetails.get(0).getEndTime(), scheduleDetails.get(0).getUrlMeeting(), oldRound));
+                    }
+                }
+            }
+        } else {
+            if (oldCV.getCandidate().isEnabled()) {
+                dataMailRequest.setSubject(MailSubjectConstant.DELETE_SCHEDULE);
+                dataMailRequest.setTo(oldCV.getCandidate().getEmail());
+                mailService.sendHtmlMail(dataMailRequest, MailBody.mailDeleteSchedule(oldCV.getCandidate().getFirstname(), updateScheduleRequest.getDate(), scheduleDetails.get(0).getStartTime(), scheduleDetails.get(0).getEndTime(), "candidate"));
+            }
+            for (String di : oldInterviewerIDs) {
+                if (employeeRepository.findByAccountID(di).isEnabled()) {
+                    dataMailRequest.setTo(employeeRepository.findByAccountID(di).getEmail());
+                    mailService.sendHtmlMail(dataMailRequest, MailBody.mailDeleteSchedule(employeeRepository.findByAccountID(di).getFirstname(), updateScheduleRequest.getDate(), scheduleDetails.get(0).getStartTime(), scheduleDetails.get(0).getEndTime(), ""));
+                }
+            }
+            dataMailRequest.setSubject(MailSubjectConstant.INTERVIEWER_SCHEDULE);
+            for (String ci : updateScheduleRequest.getNewInterviewerIDs()) {
+                if (employeeRepository.findByAccountID(ci).isEnabled()) {
+                    dataMailRequest.setTo(employeeRepository.findByAccountID(ci).getEmail());
+                    mailService.sendHtmlMail(dataMailRequest, MailBody.interviewSchedule(employeeRepository.findByAccountID(ci).getFirstname(), updateScheduleRequest.getDate(), scheduleDetails.get(0).getStartTime(), scheduleDetails.get(0).getEndTime(), scheduleDetails.get(0).getUrlMeeting(), updateScheduleRequest.getNewRoundNum()));
+                }
+            }
+            if (newCV.getCandidate().isEnabled()) {
+                dataMailRequest.setSubject(MailSubjectConstant.CANDIDATE_SCHEDULE);
+                dataMailRequest.setTo(newCV.getCandidate().getEmail());
+                mailService.sendHtmlMail(dataMailRequest, MailBody.candidateSchedule(newCV.getCandidate().getFirstname(), updateScheduleRequest.getDate(), scheduleDetails.get(0).getStartTime(), scheduleDetails.get(0).getEndTime(), scheduleDetails.get(0).getUrlMeeting(), updateScheduleRequest.getNewRoundNum()));
+            }
         }
     }
 }

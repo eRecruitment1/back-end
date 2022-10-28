@@ -8,12 +8,13 @@ import com.swp.hr_backend.model.request.DeleteScheduleRequest;
 import com.swp.hr_backend.model.request.UpdateScheduleRequest;
 import com.swp.hr_backend.model.response.ScheduleDetailResponse;
 
+import javax.mail.MessagingException;
 import java.util.List;
 
 public interface ScheduleService {
 
     List<ScheduleDetailResponse> getSchedule() throws CustomUnauthorizedException, CustomNotFoundException;
-    ScheduleDetailResponse createSchedule(CreateScheduleRequest createScheduleRequest) throws CustomUnauthorizedException, CustomBadRequestException;
-    ScheduleDetailResponse updateSchedule(UpdateScheduleRequest updateScheduleRequest) throws CustomUnauthorizedException, CustomBadRequestException;
-    ScheduleDetailResponse deleteSchedule(DeleteScheduleRequest deleteScheduleRequest) throws CustomUnauthorizedException, CustomBadRequestException;
+    ScheduleDetailResponse createSchedule(CreateScheduleRequest createScheduleRequest) throws CustomUnauthorizedException, CustomBadRequestException, MessagingException;
+    ScheduleDetailResponse updateSchedule(UpdateScheduleRequest updateScheduleRequest) throws CustomUnauthorizedException, CustomBadRequestException, MessagingException;
+    ScheduleDetailResponse deleteSchedule(DeleteScheduleRequest deleteScheduleRequest) throws CustomUnauthorizedException, CustomBadRequestException, MessagingException;
 }

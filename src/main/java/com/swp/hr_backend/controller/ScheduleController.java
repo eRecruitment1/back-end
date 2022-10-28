@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.mail.MessagingException;
 import java.util.List;
 
 @RequestMapping("/api/schedule")
@@ -31,7 +32,7 @@ public class ScheduleController {
 
     @PostMapping("/create")
     public ResponseEntity<ScheduleDetailResponse> createSchedule(@RequestBody CreateScheduleRequest createScheduleRequest)
-            throws CustomBadRequestException, CustomUnauthorizedException{
+            throws CustomBadRequestException, CustomUnauthorizedException, MessagingException{
         ScheduleDetailResponse scheduleResponses = scheduleService.createSchedule(createScheduleRequest);
         if (scheduleResponses == null) throw new CustomBadRequestException(CustomError.builder().code("403").message("Schedule is null").build());
         return ResponseEntity.ok(scheduleResponses);
@@ -39,7 +40,7 @@ public class ScheduleController {
 
     @PostMapping("/update")
     public ResponseEntity<ScheduleDetailResponse> updateSchedule(@RequestBody UpdateScheduleRequest updateScheduleRequest)
-            throws CustomBadRequestException, CustomUnauthorizedException{
+            throws CustomBadRequestException, CustomUnauthorizedException, MessagingException{
         ScheduleDetailResponse scheduleDetailResponse = scheduleService.updateSchedule(updateScheduleRequest);
         if (scheduleDetailResponse == null) throw new CustomBadRequestException(CustomError.builder().code("403").message("Schedule is null").build());
         return ResponseEntity.ok(scheduleDetailResponse);
@@ -47,7 +48,7 @@ public class ScheduleController {
 
     @DeleteMapping("/delete")
     public ResponseEntity<ScheduleDetailResponse> deleteSchedule(@RequestBody DeleteScheduleRequest deleteScheduleRequest)
-            throws CustomBadRequestException, CustomUnauthorizedException{
+            throws CustomBadRequestException, CustomUnauthorizedException, MessagingException {
         ScheduleDetailResponse scheduleDetailResponse = scheduleService.deleteSchedule(deleteScheduleRequest);
         if (scheduleDetailResponse == null) throw new CustomBadRequestException(CustomError.builder().code("403").message("Schedule is null").build());
         return ResponseEntity.ok(scheduleDetailResponse);
