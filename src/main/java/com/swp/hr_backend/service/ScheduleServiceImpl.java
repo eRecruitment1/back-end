@@ -376,4 +376,21 @@ public class ScheduleServiceImpl implements ScheduleService{
             }
         }
     }
+    @Override
+    public String loadStatus() {
+        Iterable<ScheduleDetail> all = scheduleDetailRepository.findAll();
+        for (ScheduleDetail scheduleDetail : all) {
+            Date date = scheduleDetail.getSchedule().getDate();
+            Time endTime = scheduleDetail.getEndTime();
+            String scheTime = date.toString() + "T" + endTime.toString();
+            LocalDateTime scheDate = LocalDateTime.parse(scheTime);
+            if (scheDate.isAfter(LocalDateTime.now())){
+                scheduleDetail.setStatus(false);
+                scheduleDetailRepository.save(scheduleDetail);
+            }
+            else scheduleDetail.setStatus(true);
+        }
+        return "successful";
+    }
+    
 }
