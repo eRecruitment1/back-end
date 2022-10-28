@@ -15,6 +15,9 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.mail.MessagingException;
 import java.util.List;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+
 
 @RequestMapping("/api/schedule")
 @RestController
@@ -53,4 +56,9 @@ public class ScheduleController {
         if (scheduleDetailResponse == null) throw new CustomBadRequestException(CustomError.builder().code("403").message("Schedule is null").build());
         return ResponseEntity.ok(scheduleDetailResponse);
     }
+    @PostMapping(value="/updateStatus")
+    public ResponseEntity<String>  updateStatus() {
+         return ResponseEntity.ok(scheduleService.loadStatus());
+    }
+    
 }
