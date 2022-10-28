@@ -260,6 +260,7 @@ public class ScheduleServiceImpl implements ScheduleService{
             LocalDateTime scheDate = LocalDateTime.parse(scheTime);
             if (scheDate.isAfter(LocalDateTime.now())) {
                 scheduleDetail.setStatus(false);
+                scheduleDetailRepository.save(scheduleDetail);
             } else scheduleDetail.setStatus(true);
         }
     }
