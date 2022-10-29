@@ -58,5 +58,13 @@ public class UserCVController {
 			return new ResponseEntity<>(result, HttpStatus.OK);
 		}
 	}
+    @GetMapping("/getAllCompletedCV")
+	public ResponseEntity<List<UserCVUploadResponse>> getCompleted() throws CustomNotFoundException, CustomUnauthorizedException {
+		List<UserCVUploadResponse> uploadResponses =  cvService.getCompleted();
+        if(uploadResponses.isEmpty()){
+            throw new CustomNotFoundException(CustomError.builder().code("404").message("Not Found Suitable CV ").build());
+        }
+        return ResponseEntity.ok(uploadResponses);
+	}
 }
 

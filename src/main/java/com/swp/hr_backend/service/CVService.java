@@ -17,4 +17,5 @@ public interface CVService {
     public List<UserCVUploadResponse> viewCV();
     
     public boolean evaluateUserCV(EvaluateRequest evaluate) throws BaseCustomException;
+    public List<UserCVUploadResponse> getCompleted() throws CustomUnauthorizedException;
 }

@@ -2,8 +2,11 @@ package com.swp.hr_backend.service;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
@@ -225,5 +228,33 @@ public class CVServiceImpl implements CVService {
 			}
 		}
 		return finishInterview;
+	}
+
+	@Override
+	public List<UserCVUploadResponse> getCompleted() throws CustomUnauthorizedException {
+		Account account = jwtTokenUtil.loggedAccount();
+		if (jwtTokenUtil.checkPermissionAccount(account, AccountRole.HRMANAGER)) {
+			List<UserCVUploadResponse> uploadResponses = new ArrayList<>();
+			List<Integer> nums = new ArrayList<>();
+			Set<Integer> result = new HashSet<>();
+			List<Note> notes = noteRepo.findAll();
+			for (Note note : notes) {
+				nums.add(note.getScheduleDetail().getUserCV().getCvID());
+			}
+			for (Integer num : nums) {
+				Integer i = Collections.frequency(nums, num);
+				if (i == 6) {
+					result.add(num);
+				}
+			}
+			result.forEach(results -> System.out.println(results));
+			result.stream().distinct().collect(Collectors.toList());
+			for (Integer r : result) {
+				uploadResponses.add(ObjectMapper.userCVToUserCVResponse(userCVRepository.findByCvID(r)));
+			}
+			return uploadResponses;
+		}
+		throw new CustomUnauthorizedException(CustomError.builder().code("401").message("You ARE NOT HREMPLOYEE").build());
+
 	}
 }
