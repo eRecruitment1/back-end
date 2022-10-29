@@ -14,12 +14,10 @@ import com.swp.hr_backend.exception.custom.CustomNotFoundException;
 import com.swp.hr_backend.exception.custom.CustomUnauthorizedException;
 import com.swp.hr_backend.model.CustomError;
 import com.swp.hr_backend.model.mapper.ObjectMapper;
-import com.swp.hr_backend.model.request.EvaluateRequest;
 import com.swp.hr_backend.model.request.NoteRequest;
 import com.swp.hr_backend.model.request.ViewNoteRequest;
 import com.swp.hr_backend.model.response.NoteResponse;
 import com.swp.hr_backend.repository.AccountRepository;
-import com.swp.hr_backend.repository.CandidateRepository;
 import com.swp.hr_backend.repository.FinalResultRepository;
 import com.swp.hr_backend.repository.NoteRepository;
 import com.swp.hr_backend.repository.ScheduleDetailRepository;
@@ -39,6 +37,8 @@ public class NoteServiceImpl implements NoteService {
 	private final ScheduleDetailRepository scheduleDetailRepo;
 	private final UserCVRepository userCvRepo;
 	private final FinalResultRepository finalResultRepo;
+	private final AccountRepository accountRepository;
+	private final UserCVRepository userCVRepository;
 
 	@Override
 	public NoteResponse takeNote(NoteRequest noteReq) throws BaseCustomException {
@@ -80,8 +80,21 @@ public class NoteServiceImpl implements NoteService {
 
 	@Override
 	public List<NoteResponse> viewNotes() throws BaseCustomException {
+		List<NoteResponse> noteResponses = new ArrayList<>();
 		if (jwtTokenUtil.checkPermissionCurrentAccount(AccountRole.HRMANAGER)) {
-			return ObjectMapper.notesToNoteResponses(noteRepo.findAll());
+			List<Note> notes = noteRepo.findAll();
+			for (Note note : notes) {
+			  NoteResponse noteResponse =ObjectMapper.noteToNoteResponse(note);
+			  Account account = accountRepository.findById(noteResponse.getAccountId()).get();
+			  noteResponse.setFirstName(account.getFirstname());
+			  noteResponse.setLastName(account.getLastname());
+			  noteResponse.setEmail(account.getEmail());
+			  noteResponse.setUserName(account.getUsername());
+			  UserCV userCV = userCVRepository.findByCvID(noteResponse.getCvId());
+			  noteResponse.setLinkCV(userCV.getLinkCV());
+			  noteResponses.add(noteResponse);
+			}
+			return noteResponses;
 		} else
 			throw new CustomUnauthorizedException(CustomError.builder().code("401")
 					.message("Access denied, you need to be Hr Manager to do this!").build());
