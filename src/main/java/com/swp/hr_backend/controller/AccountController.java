@@ -72,10 +72,22 @@ public class AccountController {
 	public String sendMailVerify() throws MessagingException, CustomNotFoundException{
 		return accService.sendMailVerify();
 	}
-	@GetMapping("/getRoleEmployee")
-	public ResponseEntity<List<AccountResponse>> getEmployee() throws CustomNotFoundException{
+	@GetMapping("/getAccountByRole/{roleName}")
+	public ResponseEntity<List<AccountResponse>> getEmployee(@PathVariable("roleName") String roleName) throws CustomNotFoundException, CustomBadRequestException{
+		int roleID;
+		if(roleName.equalsIgnoreCase("EMPLOYEE")){
+			roleID = 1;
+		} else if(roleName.equalsIgnoreCase("HREMPLOYEE")){
+			roleID = 2;
+		} else if(roleName.equalsIgnoreCase("HRMANAGER")){
+			roleID = 3;
+		} else if(roleName.equalsIgnoreCase("ADMIN")){
+			roleID = 4;
+		}else {
+			throw new CustomBadRequestException(CustomError.builder().code("400").message("Not Have Role You Want").build());
+		}
 		List<AccountResponse> accountResponses = null;
-		accountResponses = accService.getEmployee();
+		accountResponses = accService.getEmployee(roleID);
 		if(accountResponses.isEmpty()){
 			throw new CustomNotFoundException(CustomError.builder().code("404").message("Not Found Anything").build());
 		}

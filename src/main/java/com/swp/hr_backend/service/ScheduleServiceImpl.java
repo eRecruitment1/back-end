@@ -198,7 +198,7 @@ public class ScheduleServiceImpl implements ScheduleService{
         for (ScheduleDetail s : scheduleDetails) {
             if (!s.isStatus())
                 throw new CustomBadRequestException(CustomError.builder().code("403").message("This cv is scheduled before").build());
-        }
+        } 
     }
 
     @Override

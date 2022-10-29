@@ -236,9 +236,9 @@ public class AccountServiceImpl implements AccountService {
 	}
 
 	@Override
-	public List<AccountResponse> getEmployee() {
+	public List<AccountResponse> getEmployee(int roleID) {
 		List<AccountResponse> accountResponses = new ArrayList<>();
-		Role role = roleRepository.findByRoleID(1);
+		Role role = roleRepository.findByRoleID(roleID);
 		List<Employee> employees = employeeRepository.findByRole(role);
 		for (Employee employee : employees) {
 			Account account = accountRepository.findById(employee.getAccountID()).get();
