@@ -1,7 +1,5 @@
 package com.swp.hr_backend.model.response;
 
-import javax.persistence.Column;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -22,4 +20,9 @@ public class NoteResponse {
 	private int scheduleId;
 	private String accountId;
 	private int cvId;
+	private String firstName;
+	private String lastName;
+	private String userName;
+	private String email;
+	private String linkCV;
 }

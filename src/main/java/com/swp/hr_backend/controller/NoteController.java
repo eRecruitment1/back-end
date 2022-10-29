@@ -16,12 +16,10 @@ import org.springframework.web.bind.annotation.RestController;
 import com.swp.hr_backend.exception.custom.BaseCustomException;
 import com.swp.hr_backend.exception.custom.CustomBadRequestException;
 import com.swp.hr_backend.model.CustomError;
-import com.swp.hr_backend.model.dto.PostDTO;
 import com.swp.hr_backend.model.request.NoteRequest;
 import com.swp.hr_backend.model.request.ViewNoteRequest;
 import com.swp.hr_backend.model.response.NoteResponse;
 import com.swp.hr_backend.service.NoteService;
-import com.swp.hr_backend.service.PostService;
 
 import lombok.RequiredArgsConstructor;
 
