@@ -10,12 +10,14 @@ import com.swp.hr_backend.model.request.EvaluateRequest;
 import com.swp.hr_backend.model.request.UserCVUploadRequest;
 import com.swp.hr_backend.model.response.UserCVUploadResponse;
 
+import javax.mail.MessagingException;
+
 public interface CVService {
     public UserCVUploadResponse uploadCV(UserCVUploadRequest cvRequest)
             throws CustomDuplicateFieldException, CustomBadRequestException, CustomUnauthorizedException;
 
     public List<UserCVUploadResponse> viewCV();
     
-    public boolean evaluateUserCV(EvaluateRequest evaluate) throws BaseCustomException;
+    public boolean evaluateUserCV(EvaluateRequest evaluate) throws BaseCustomException, MessagingException;
     public List<UserCVUploadResponse> getCompleted() throws CustomUnauthorizedException;
 }

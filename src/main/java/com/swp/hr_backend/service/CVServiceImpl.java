@@ -9,6 +9,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.swp.hr_backend.model.request.DataMailRequest;
+import com.swp.hr_backend.utils.*;
 import org.springframework.stereotype.Service;
 
 import com.swp.hr_backend.entity.Account;
@@ -34,11 +36,10 @@ import com.swp.hr_backend.repository.FinalResultRepository;
 import com.swp.hr_backend.repository.NoteRepository;
 import com.swp.hr_backend.repository.PostRepository;
 import com.swp.hr_backend.repository.UserCVRepository;
-import com.swp.hr_backend.utils.AccountRole;
-import com.swp.hr_backend.utils.JwtTokenUtil;
-import com.swp.hr_backend.utils.Round;
 
 import lombok.RequiredArgsConstructor;
+
+import javax.mail.MessagingException;
 
 @Service
 @RequiredArgsConstructor
@@ -53,6 +54,7 @@ public class CVServiceImpl implements CVService {
 	private final UserCVRepository userCvRepo;
 	private final NoteRepository noteRepo;
 	private final AccountRepository accountRepository;
+	private final MailService mailService;
 
 	@Override
 	public UserCVUploadResponse uploadCV(UserCVUploadRequest cvRequest)
@@ -169,7 +171,7 @@ public class CVServiceImpl implements CVService {
 	}
 
 	@Override
-	public boolean evaluateUserCV(EvaluateRequest evaluate) throws BaseCustomException {
+	public boolean evaluateUserCV(EvaluateRequest evaluate) throws BaseCustomException, MessagingException {
 		if (evaluate == null)
 			throw new CustomNotFoundException(CustomError.builder().code("400").message("Bad Request").build());
 		boolean isPass = (evaluate.getIsPass().equalsIgnoreCase("true")) ? true : false;
@@ -179,13 +181,16 @@ public class CVServiceImpl implements CVService {
 					CustomError.builder().code("401").message("Access denied, you need to login to do this!").build());
 		if (jwtTokenUtil.checkPermissionAccount(curAcc, AccountRole.HREMPLOYEE, AccountRole.HRMANAGER)) {
 			UserCV cv = userCvRepo.findByCvID(evaluate.getCvId());
+			Candidate candidate = cv.getCandidate();
 			if (cv != null) {
 				if (cv.getFinalResult() == null)
 					throw new CustomNotFoundException(
 							CustomError.builder().code("404").message("Not Found Final Result!").build());
 				String resultStatus = cv.getFinalResult().getResultStatus();
-				if (resultStatus.toLowerCase().equals(Round.NOT_PASS.toString().toLowerCase()))
+				if (resultStatus.toLowerCase().equals(Round.NOT_PASS.toString().toLowerCase())) {
+					sendMail("notpass", candidate.getEmail(), candidate.getFirstname());
 					return false;
+				}
 				if (jwtTokenUtil.checkPermissionAccount(curAcc, AccountRole.HREMPLOYEE)) {
 					if (resultStatus.toLowerCase().equals(Round.PENDING.toString().toLowerCase())) {
 						if (!checkAvailableScheduleDetail(cv, Round.ROUND1))
@@ -193,8 +198,10 @@ public class CVServiceImpl implements CVService {
 									.message("Still on meeting, cannot evaluate cv...").build());
 						if (isPass) {
 							cv.getFinalResult().setResultStatus(Round.ROUND1.toString());
+							sendMail("round1", candidate.getEmail(), candidate.getFirstname());
 						} else {
 							cv.getFinalResult().setResultStatus(Round.NOT_PASS.toString());
+							sendMail("notpass", candidate.getEmail(), candidate.getFirstname());
 						}
 					} else
 						throw new CustomNotFoundException(CustomError.builder().code("403")
@@ -212,8 +219,18 @@ public class CVServiceImpl implements CVService {
 									.message("Still on meeting, cannot evaluate cv...").build());
 						if (isPass) {
 							cv.getFinalResult().setResultStatus(Round.PASS.toString());
+							sendMail("round2", candidate.getEmail(), candidate.getFirstname());
 						} else {
 							cv.getFinalResult().setResultStatus(Round.NOT_PASS.toString());
+							sendMail("notpass", candidate.getEmail(), candidate.getFirstname());
+						}
+					} else if (resultStatus.toLowerCase().equals(Round.ROUND2.toString().toLowerCase())) {
+						if (isPass) {
+							cv.getFinalResult().setResultStatus(Round.PASS.toString());
+							sendMail("pass", candidate.getEmail(), candidate.getFirstname());
+						} else {
+							cv.getFinalResult().setResultStatus(Round.NOT_PASS.toString());
+							sendMail("notpass", candidate.getEmail(), candidate.getFirstname());
 						}
 					} else
 						throw new CustomNotFoundException(CustomError.builder().code("403")
@@ -296,5 +313,20 @@ public class CVServiceImpl implements CVService {
 		throw new CustomUnauthorizedException(
 				CustomError.builder().code("401").message("You ARE NOT HREMPLOYEE").build());
 
+	}
+
+	public void sendMail(String result, String to, String firstname) throws MessagingException {
+		DataMailRequest dataMailRequest = new DataMailRequest();
+		dataMailRequest.setTo(to);
+		if (result.equals("round1") || result.equals("round2")) {
+			dataMailRequest.setSubject(MailSubjectConstant.PASS_ROUND);
+		}
+		else if (result.equals("pass")) {
+			dataMailRequest.setSubject(MailSubjectConstant.PASS_RESULT);
+		}
+		else {
+			dataMailRequest.setSubject(MailSubjectConstant.NOT_PASS);
+		}
+		mailService.sendHtmlMail(dataMailRequest, MailBody.mailResult(firstname, result));
 	}
 }
