@@ -122,7 +122,7 @@ public class ScheduleServiceImpl implements ScheduleService {
                 || jwtTokenUtil.checkPermissionAccount(acc, AccountRole.HRMANAGER)) {
             checkValidRequest(createScheduleRequest.getRound(), createScheduleRequest.getCvID(),
                     createScheduleRequest.getInterviewerIDs());
-            checkValidCV(createScheduleRequest.getCvID());
+           //checkValidCV(createScheduleRequest.getCvID());
             checkValidInterviewer(createScheduleRequest.getInterviewerIDs(), createScheduleRequest.getDate(),
                     createScheduleRequest.getStartTime(), createScheduleRequest.getEndTime());
             Schedule schedule = scheduleRepository.findByDate(createScheduleRequest.getDate());
@@ -241,15 +241,15 @@ public class ScheduleServiceImpl implements ScheduleService {
         }
     }
 
-    public void checkValidCV(int cvID) throws CustomBadRequestException {
-        UserCV userCV =  userCVRepository.findByCvID(cvID);
-        List<ScheduleDetail> scheduleDetails = scheduleDetailRepository.findByUserCV(userCV);
-        for (ScheduleDetail s : scheduleDetails) {
-            if (s.isStatus())
-                throw new CustomBadRequestException(
-                        CustomError.builder().code("403").message("This cv is scheduled before").build());
-        }
-    }
+    // public void checkValidCV(int cvID) throws CustomBadRequestException {
+    //     UserCV userCV =  userCVRepository.findByCvID(cvID);
+    //     List<ScheduleDetail> scheduleDetails = scheduleDetailRepository.findByUserCV(userCV);
+    //     for (ScheduleDetail s : scheduleDetails) {
+    //         if (s.isStatus())
+    //             throw new CustomBadRequestException(
+    //                     CustomError.builder().code("403").message("This cv is scheduled before").build());
+    //     }
+    // }
 
     @Override
     public ScheduleDetailResponse updateSchedule(UpdateScheduleRequest updateScheduleRequest)
@@ -270,7 +270,7 @@ public class ScheduleServiceImpl implements ScheduleService {
                     updateScheduleRequest.getNewInterviewerIDs());
 
             if (updateScheduleRequest.getNewCVID() != updateScheduleRequest.getCvID())
-                checkValidCV(updateScheduleRequest.getNewCVID());
+                //checkValidCV(updateScheduleRequest.getNewCVID());
             if ((updateScheduleRequest.getNewInterviewerIDs().size() != interviewerIDs.size()) ||
                     (updateScheduleRequest.getNewInterviewerIDs().size() == interviewerIDs.size()
                             && !updateScheduleRequest.getNewInterviewerIDs().containsAll(interviewerIDs)))
