@@ -7,11 +7,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
-import com.swp.hr_backend.service.AccountService;
-import com.swp.hr_backend.service.EmployeeService;
-import com.swp.hr_backend.service.RoleService;
-
-import org.springframework.context.annotation.Lazy;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
@@ -20,6 +15,9 @@ import com.swp.hr_backend.entity.Account;
 import com.swp.hr_backend.entity.Candidate;
 import com.swp.hr_backend.model.TokenPayLoad;
 import com.swp.hr_backend.repository.CandidateRepository;
+import com.swp.hr_backend.service.AccountService;
+import com.swp.hr_backend.service.EmployeeService;
+import com.swp.hr_backend.service.RoleService;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
