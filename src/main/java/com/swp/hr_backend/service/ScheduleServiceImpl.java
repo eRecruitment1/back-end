@@ -242,7 +242,8 @@ public class ScheduleServiceImpl implements ScheduleService {
     }
 
     public void checkValidCV(int cvID) throws CustomBadRequestException {
-        List<ScheduleDetail> scheduleDetails = scheduleDetailRepository.findByScheduleDetailIDCvID(cvID);
+        UserCV userCV =  userCVRepository.findByCvID(cvID);
+        List<ScheduleDetail> scheduleDetails = scheduleDetailRepository.findByUserCV(userCV);
         for (ScheduleDetail s : scheduleDetails) {
             if (s.isStatus())
                 throw new CustomBadRequestException(
@@ -370,11 +371,12 @@ public class ScheduleServiceImpl implements ScheduleService {
             Time endTime = scheduleDetail.getEndTime();
             String scheTime = date.toString() + "T" + endTime.toString();
             LocalDateTime scheDate = LocalDateTime.parse(scheTime);
-            if (scheDate.isAfter(LocalDateTime.now())) {
+            if (scheDate.isBefore(LocalDateTime.now())) {
                 scheduleDetail.setStatus(false);
                 scheduleDetailRepository.save(scheduleDetail);
-            } else
+            } else{
                 scheduleDetail.setStatus(true);
+            }      
         }
     }
 
