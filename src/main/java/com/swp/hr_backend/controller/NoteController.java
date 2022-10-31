@@ -19,11 +19,9 @@ import com.swp.hr_backend.model.CustomError;
 import com.swp.hr_backend.model.request.NoteRequest;
 import com.swp.hr_backend.model.request.ViewNoteRequest;
 import com.swp.hr_backend.model.response.NoteResponse;
-import com.swp.hr_backend.model.response.UserCVUploadResponse;
 import com.swp.hr_backend.service.NoteService;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.RequestParam;
 
 
 @RequestMapping("/api/note")

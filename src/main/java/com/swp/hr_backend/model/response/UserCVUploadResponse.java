@@ -21,4 +21,9 @@ public class UserCVUploadResponse {
     private String linkCV;
     private int postID;
     private String accountID;  
+    private String username;
+    private String email;
+    private String lastName;
+    private String firstName;
+    private String postTitle;
 }

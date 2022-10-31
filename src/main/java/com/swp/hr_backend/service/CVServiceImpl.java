@@ -28,6 +28,7 @@ import com.swp.hr_backend.model.mapper.ObjectMapper;
 import com.swp.hr_backend.model.request.EvaluateRequest;
 import com.swp.hr_backend.model.request.UserCVUploadRequest;
 import com.swp.hr_backend.model.response.UserCVUploadResponse;
+import com.swp.hr_backend.repository.AccountRepository;
 import com.swp.hr_backend.repository.CandidateRepository;
 import com.swp.hr_backend.repository.FinalResultRepository;
 import com.swp.hr_backend.repository.NoteRepository;
@@ -51,6 +52,7 @@ public class CVServiceImpl implements CVService {
 	private final RoleService roleService;
 	private final UserCVRepository userCvRepo;
 	private final NoteRepository noteRepo;
+	private final AccountRepository accountRepository;
 
 	@Override
 	public UserCVUploadResponse uploadCV(UserCVUploadRequest cvRequest)
@@ -115,7 +117,15 @@ public class CVServiceImpl implements CVService {
 								.equalsIgnoreCase(account.getAccountID()))
 						.filter(scheduleDetail -> scheduleDetail.isStatus()).collect(Collectors.toList());
 				if (!result.isEmpty()) {
-					cvResult.add(ObjectMapper.userCVToUserCVResponse(u));
+					Account accountResult = accountRepository.findById(u.getCandidate().getAccountID()).get();
+					Post postResult = postRepository.findById(u.getPost().getPostID()).get();
+					UserCVUploadResponse userCVUploadResponse = ObjectMapper.userCVToUserCVResponse(u);
+					userCVUploadResponse.setFirstName(accountResult.getFirstname());
+					userCVUploadResponse.setLastName(accountResult.getLastname());
+					userCVUploadResponse.setEmail(accountResult.getEmail());
+					userCVUploadResponse.setPostTitle(postResult.getTitle());
+					userCVUploadResponse.setUsername(accountResult.getUsername());
+					cvResult.add(userCVUploadResponse);
 				}
 			}
 			return cvResult;
@@ -123,7 +133,15 @@ public class CVServiceImpl implements CVService {
 		if (roleName.equalsIgnoreCase("HRMANAGER") || roleName.equalsIgnoreCase("HREMPLOYEE")) {
 			List<UserCV> userCVs = userCVRepository.findAll();
 			for (UserCV u : userCVs) {
-				userCVUploadResponses.add(ObjectMapper.userCVToUserCVResponse(u));
+				Account accountResult = accountRepository.findById(u.getCandidate().getAccountID()).get();
+				Post postResult = postRepository.findById(u.getPost().getPostID()).get();
+				UserCVUploadResponse userCVUploadResponse = ObjectMapper.userCVToUserCVResponse(u);
+				userCVUploadResponse.setFirstName(accountResult.getFirstname());
+				userCVUploadResponse.setLastName(accountResult.getLastname());
+				userCVUploadResponse.setEmail(accountResult.getEmail());
+				userCVUploadResponse.setPostTitle(postResult.getTitle());
+				userCVUploadResponse.setUsername(accountResult.getUsername());
+				userCVUploadResponses.add(userCVUploadResponse);
 			}
 			return userCVUploadResponses;
 		}
@@ -131,7 +149,15 @@ public class CVServiceImpl implements CVService {
 			Candidate candidate = candidateRepository.findById(account.getAccountID()).get();
 			UserCV userCV = userCVRepository.findByCandidate(candidate);
 			if (userCV != null) {
-				userCVUploadResponses.add(ObjectMapper.userCVToUserCVResponse(userCV));
+				UserCVUploadResponse userCVUploadResponse = ObjectMapper.userCVToUserCVResponse(userCV);
+				Account accountResult = accountRepository.findById(userCV.getCandidate().getAccountID()).get();
+				Post postResult = postRepository.findById(userCV.getPost().getPostID()).get();
+				userCVUploadResponse.setFirstName(accountResult.getFirstname());
+				userCVUploadResponse.setLastName(accountResult.getLastname());
+				userCVUploadResponse.setEmail(accountResult.getEmail());
+				userCVUploadResponse.setPostTitle(postResult.getTitle());
+				userCVUploadResponse.setUsername(accountResult.getUsername());
+				userCVUploadResponses.add(userCVUploadResponse);
 				return userCVUploadResponses;
 			}
 			return null;
@@ -254,7 +280,8 @@ public class CVServiceImpl implements CVService {
 			}
 			return uploadResponses;
 		}
-		throw new CustomUnauthorizedException(CustomError.builder().code("401").message("You ARE NOT HREMPLOYEE").build());
+		throw new CustomUnauthorizedException(
+				CustomError.builder().code("401").message("You ARE NOT HREMPLOYEE").build());
 
 	}
 }
