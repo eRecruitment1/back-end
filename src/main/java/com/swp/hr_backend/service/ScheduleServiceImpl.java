@@ -11,6 +11,7 @@ import com.swp.hr_backend.model.request.CreateScheduleRequest;
 import com.swp.hr_backend.model.request.DataMailRequest;
 import com.swp.hr_backend.model.request.DeleteScheduleRequest;
 import com.swp.hr_backend.model.request.UpdateScheduleRequest;
+import com.swp.hr_backend.model.response.AccountResponse;
 import com.swp.hr_backend.model.response.ScheduleDetailResponse;
 import com.swp.hr_backend.repository.*;
 import com.swp.hr_backend.utils.*;
@@ -35,6 +36,7 @@ public class ScheduleServiceImpl implements ScheduleService {
     private final FinalResultRepository finalResultRepository;
     private final JwtTokenUtil jwtTokenUtil;
     private final MailService mailService;
+    private final AccountRepository accountRepository;
 
     @Override
     public List<ScheduleDetailResponse> getSchedule() throws CustomUnauthorizedException, CustomNotFoundException {
@@ -49,12 +51,17 @@ public class ScheduleServiceImpl implements ScheduleService {
                     List<ScheduleDetail> sameSchedule = scheduleDetailRepository
                             .findByScheduleDetailIDScheduleIDAndScheduleDetailIDCvID(s.getSchedule().getScheduleID(),
                                     s.getUserCV().getCvID());
+                    List<AccountResponse> accountResponses = new ArrayList<>();
                     List<String> interviewerIDs = new ArrayList<>();
                     for (ScheduleDetail ss : sameSchedule) {
+                        Account account = accountRepository.findById(ss.getInterviewer().getAccountID()).get();
+                        accountResponses.add(ObjectMapper.accountToAccountResponse(account));
                         interviewerIDs.add(ss.getInterviewer().getAccountID());
                     }
+                    ScheduleDetailResponse scheduleDetailResponse = ObjectMapper.scheduleToScheduleDetailResponse(s.getSchedule(), s, interviewerIDs);
+                    scheduleDetailResponse.setAccountResponses(accountResponses);
                     scheduleDetailResponses
-                            .add(ObjectMapper.scheduleToScheduleDetailResponse(s.getSchedule(), s, interviewerIDs));
+                            .add(scheduleDetailResponse);
                 }
                 return scheduleDetailResponses;
             } else {
@@ -77,9 +84,14 @@ public class ScheduleServiceImpl implements ScheduleService {
                             .findByScheduleDetailIDScheduleIDAndScheduleDetailIDCvID(s.getSchedule().getScheduleID(),
                                     s.getUserCV().getCvID());
                     List<String> interviewerIDs = new ArrayList<>();
+                    List<AccountResponse> accountResponses = new ArrayList<>();
                     for (ScheduleDetail ss : sameSchedule) {
+                        Account account = accountRepository.findById(ss.getInterviewer().getAccountID()).get();
+                        accountResponses.add(ObjectMapper.accountToAccountResponse(account));
                         interviewerIDs.add(ss.getInterviewer().getAccountID());
                     }
+                    ScheduleDetailResponse scheduleDetailResponse = ObjectMapper.scheduleToScheduleDetailResponse(s.getSchedule(), s, interviewerIDs);
+                    scheduleDetailResponse.setAccountResponses(accountResponses);
                     if (scheduleDetailResponses != null)
                         for (ScheduleDetailResponse sdr : scheduleDetailResponses)
                             if (sdr.getCvID() == s.getUserCV().getCvID()
@@ -89,7 +101,7 @@ public class ScheduleServiceImpl implements ScheduleService {
                             }
                     if (!exist)
                         scheduleDetailResponses
-                                .add(ObjectMapper.scheduleToScheduleDetailResponse(s.getSchedule(), s, interviewerIDs));
+                                .add(scheduleDetailResponse);
                 }
                 return scheduleDetailResponses;
             } else {
