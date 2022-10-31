@@ -276,7 +276,16 @@ public class CVServiceImpl implements CVService {
 			result.forEach(results -> System.out.println(results));
 			result.stream().distinct().collect(Collectors.toList());
 			for (Integer r : result) {
-				uploadResponses.add(ObjectMapper.userCVToUserCVResponse(userCVRepository.findByCvID(r)));
+				UserCV userCV = userCVRepository.findByCvID(r);
+				UserCVUploadResponse uploadResponse =  ObjectMapper.userCVToUserCVResponse(userCV);
+				Account accountResult = accountRepository.findById(userCV.getCandidate().getAccountID()).get();
+				Post postResult = postRepository.findById(userCV.getPost().getPostID()).get();
+				uploadResponse.setFirstName(accountResult.getFirstname());
+				uploadResponse.setLastName(accountResult.getLastname());
+				uploadResponse.setEmail(accountResult.getEmail());
+				uploadResponse.setPostTitle(postResult.getTitle());
+				uploadResponse.setUsername(accountResult.getUsername());	
+				uploadResponses.add(uploadResponse);
 			}
 			return uploadResponses;
 		}
