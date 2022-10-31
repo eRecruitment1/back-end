@@ -39,6 +39,9 @@ public class WebSecurityConfig {
                 .antMatchers("/api/post/getlastest").permitAll() // to be continue
                 .antMatchers("/api/account/signup").permitAll()
                 .antMatchers("/api/account/verify/**").permitAll()
+                .antMatchers(HttpMethod.POST, "/api/account/forgotPassword").permitAll()
+                .antMatchers(HttpMethod.POST, "/api/phone/otp").permitAll()
+                .antMatchers("/api/mail/forgotPassword").permitAll()
                 .antMatchers("/api/**").authenticated()
                 .and().sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS);

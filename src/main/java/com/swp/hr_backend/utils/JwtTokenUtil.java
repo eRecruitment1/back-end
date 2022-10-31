@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 import com.swp.hr_backend.entity.Account;
 import com.swp.hr_backend.entity.Candidate;
 import com.swp.hr_backend.model.TokenPayLoad;
+import com.swp.hr_backend.repository.AccountRepository;
 import com.swp.hr_backend.repository.CandidateRepository;
 import com.swp.hr_backend.service.AccountService;
 import com.swp.hr_backend.service.EmployeeService;
@@ -38,7 +39,7 @@ public class JwtTokenUtil implements Serializable {
 	public static final long REFRESH_TOKEN_EXPIRED = 2 * 24 * 60 * 60; // 2 ngày
 	private final String secret = "HR_SECRET";
 	private final String ISSUER = "HR_TEAM";
-	private final AccountService accountService;
+	private final AccountRepository accountRepo;
 	private final EmployeeService employeeService;
 	private final RoleService roleService;
 	private final CandidateRepository candRepo;
@@ -113,7 +114,7 @@ public class JwtTokenUtil implements Serializable {
 		Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 		if (principal instanceof UserDetails) {
 			String username = ((UserDetails) principal).getUsername();
-			Account account = accountService.findAccountByUsername(username);
+			Account account = accountRepo.findByUsername(username);
 			return account;
 		}
 		return null;

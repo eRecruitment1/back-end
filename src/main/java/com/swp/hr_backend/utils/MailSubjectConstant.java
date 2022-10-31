@@ -8,5 +8,6 @@ public class MailSubjectConstant {
     public static final String PASS_ROUND = "You have passed previous interview.";
     public static final String PASS_RESULT = "You have become an official employee.";
     public static final String NOT_PASS = "You fail for this vacany.";
+    public static final String CHANGE_PASSWORD = "Change password";
 
 }
