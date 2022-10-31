@@ -22,4 +22,5 @@ public class ScheduleDetailResponse {
     private Time endTime;
     private boolean status;
     private String urlMeeting;
+    private List<AccountResponse> accountResponses;
 }
