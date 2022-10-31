@@ -244,7 +244,7 @@ public class ScheduleServiceImpl implements ScheduleService {
     public void checkValidCV(int cvID) throws CustomBadRequestException {
         List<ScheduleDetail> scheduleDetails = scheduleDetailRepository.findByScheduleDetailIDCvID(cvID);
         for (ScheduleDetail s : scheduleDetails) {
-            if (!s.isStatus())
+            if (s.isStatus())
                 throw new CustomBadRequestException(
                         CustomError.builder().code("403").message("This cv is scheduled before").build());
         }
