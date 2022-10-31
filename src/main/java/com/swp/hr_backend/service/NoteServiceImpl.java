@@ -107,17 +107,25 @@ public class NoteServiceImpl implements NoteService {
 		if (jwtTokenUtil.checkPermissionCurrentAccount(AccountRole.HRMANAGER)) {
 			List<Note> listAllNoteOfCv = noteRepo.findNotesByCvId(viewNoteReq.getCvId());
 			if (listAllNoteOfCv != null && listAllNoteOfCv.size() > 0) {
-				List<Note> listAllNoteOfCvAndRoundNum = new ArrayList<Note>();
+				List<NoteResponse> listAllNoteOfCvAndRoundNum = new ArrayList<NoteResponse>();
 				if (viewNoteReq.getRoundNum() > 3 || viewNoteReq.getRoundNum() < 1)
 					throw new CustomNotFoundException(CustomError.builder().code("400").message("Bad Request").build());
 				System.out.println(Round.valueOf(viewNoteReq.getRoundNum()));
 				for (Note note : listAllNoteOfCv) {
 					if (note.getScheduleDetail().getRoundNum().toLowerCase()
 							.equals(Round.valueOf(viewNoteReq.getRoundNum()).toString().toLowerCase())) {
-						listAllNoteOfCvAndRoundNum.add(note);
+					    NoteResponse noteResponse =ObjectMapper.noteToNoteResponse(note);
+						Account account = accountRepository.findById(note.getScheduleDetail().getInterviewer().getAccountID()).get();
+					    UserCV userCV = userCVRepository.findByCvID(noteResponse.getCvId());
+						noteResponse.setFirstName(account.getFirstname());
+						noteResponse.setLastName(account.getLastname());
+						noteResponse.setEmail(account.getEmail());
+						noteResponse.setUserName(account.getUsername());
+						noteResponse.setLinkCV(userCV.getLinkCV());
+						listAllNoteOfCvAndRoundNum.add(noteResponse);
 					}
 				}
-				return ObjectMapper.notesToNoteResponses(listAllNoteOfCvAndRoundNum);
+				return listAllNoteOfCvAndRoundNum;
 			} else
 				throw new CustomNotFoundException(
 						CustomError.builder().code("404").message("Not Found Any Note!").build());

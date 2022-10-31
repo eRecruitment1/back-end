@@ -392,5 +392,21 @@ public class ScheduleServiceImpl implements ScheduleService{
         }
         return "successful";
     }
+
+    @Override
+    public ScheduleDetailResponse viewScheduleDetail() {
+        Account account = jwtTokenUtil.loggedAccount();
+        List<ScheduleDetail> scheduleDetails = new ArrayList<>();
+        List<ScheduleDetailResponse> scheduleDetailResponses = new ArrayList<>();
+        if(jwtTokenUtil.checkPermissionAccount(account,AccountRole.HREMPLOYEE)){
+            scheduleDetails = (List<ScheduleDetail>) scheduleDetailRepository.findAll();
+            for (ScheduleDetail s : scheduleDetails) {
+                if(s.getRoundNum().equalsIgnoreCase("Round1") && s.getInterviewer().getAccountID().equalsIgnoreCase(account.getAccountID())){
+                     ObjectMapper.scheduleToScheduleDetailResponse(s.getSchedule(),s, null);
+                }
+            }
+        }
+        return null;
+    }
     
 }
