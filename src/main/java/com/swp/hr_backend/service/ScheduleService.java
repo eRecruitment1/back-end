@@ -18,4 +18,5 @@ public interface ScheduleService {
     ScheduleDetailResponse updateSchedule(UpdateScheduleRequest updateScheduleRequest) throws CustomUnauthorizedException, CustomBadRequestException, MessagingException;
     ScheduleDetailResponse deleteSchedule(DeleteScheduleRequest deleteScheduleRequest) throws CustomUnauthorizedException, CustomBadRequestException, MessagingException;
     String loadStatus();
+    ScheduleDetailResponse viewScheduleDetail();
 }
