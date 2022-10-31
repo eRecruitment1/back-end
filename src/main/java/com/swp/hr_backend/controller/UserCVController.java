@@ -2,6 +2,7 @@ package com.swp.hr_backend.controller;
 
 import java.util.List;
 
+import javax.mail.MessagingException;
 import javax.validation.Valid;
 
 import org.springframework.http.HttpStatus;
@@ -50,7 +51,7 @@ public class UserCVController {
     }
     
 	@PostMapping("/evaluate")
-	public ResponseEntity<Boolean> takeNote(@Valid @RequestBody EvaluateRequest evaReq) throws BaseCustomException {
+	public ResponseEntity<Boolean> takeNote(@Valid @RequestBody EvaluateRequest evaReq) throws BaseCustomException, MessagingException {
 		boolean result = cvService.evaluateUserCV(evaReq);
 		if (!result) {
 			throw new CustomBadRequestException(CustomError.builder().code("403").message("evaluate failed...").build());
