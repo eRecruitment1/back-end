@@ -26,4 +26,5 @@ public class UserCVUploadResponse {
     private String lastName;
     private String firstName;
     private String postTitle;
+    private String roundNum;
 }

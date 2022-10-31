@@ -125,6 +125,7 @@ public class CVServiceImpl implements CVService {
 					userCVUploadResponse.setEmail(accountResult.getEmail());
 					userCVUploadResponse.setPostTitle(postResult.getTitle());
 					userCVUploadResponse.setUsername(accountResult.getUsername());
+					userCVUploadResponse.setRoundNum(u.getFinalResult().getResultStatus());
 					cvResult.add(userCVUploadResponse);
 				}
 			}
@@ -142,6 +143,7 @@ public class CVServiceImpl implements CVService {
 				userCVUploadResponse.setPostTitle(postResult.getTitle());
 				userCVUploadResponse.setUsername(accountResult.getUsername());
 				userCVUploadResponses.add(userCVUploadResponse);
+				userCVUploadResponse.setRoundNum(u.getFinalResult().getResultStatus());
 			}
 			return userCVUploadResponses;
 		}
@@ -157,6 +159,7 @@ public class CVServiceImpl implements CVService {
 				userCVUploadResponse.setEmail(accountResult.getEmail());
 				userCVUploadResponse.setPostTitle(postResult.getTitle());
 				userCVUploadResponse.setUsername(accountResult.getUsername());
+				userCVUploadResponse.setRoundNum(userCV.getFinalResult().getResultStatus());
 				userCVUploadResponses.add(userCVUploadResponse);
 				return userCVUploadResponses;
 			}
@@ -284,7 +287,8 @@ public class CVServiceImpl implements CVService {
 				uploadResponse.setLastName(accountResult.getLastname());
 				uploadResponse.setEmail(accountResult.getEmail());
 				uploadResponse.setPostTitle(postResult.getTitle());
-				uploadResponse.setUsername(accountResult.getUsername());	
+				uploadResponse.setUsername(accountResult.getUsername());
+				uploadResponse.setRoundNum(userCV.getFinalResult().getResultStatus());
 				uploadResponses.add(uploadResponse);
 			}
 			return uploadResponses;
