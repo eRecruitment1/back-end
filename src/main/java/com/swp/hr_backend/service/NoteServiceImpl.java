@@ -119,7 +119,7 @@ public class NoteServiceImpl implements NoteService {
 					    UserCV userCV = userCVRepository.findByCvID(noteResponse.getCvId());
 						noteResponse.setFirstName(account.getFirstname());
 						noteResponse.setLastName(account.getLastname());
-						noteResponse.setEmail(account.getEmail());
+						noteResponse.setEmail(account.getEmail());	
 						noteResponse.setUserName(account.getUsername());
 						noteResponse.setLinkCV(userCV.getLinkCV());
 						listAllNoteOfCvAndRoundNum.add(noteResponse);

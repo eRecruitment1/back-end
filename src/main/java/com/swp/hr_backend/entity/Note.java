@@ -26,9 +26,9 @@ public class Note {
     private int point;
 
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "schedule_id",nullable = false)
-    @JoinColumn(name = "account_id",nullable = false)
     @JoinColumn(name = "cv_id",nullable = false)
+    @JoinColumn(name = "account_id",nullable = false)
+    @JoinColumn(name = "schedule_id",nullable = false)
     private ScheduleDetail scheduleDetail;
 
 }
