@@ -4,6 +4,7 @@ import java.util.List;
 
 import javax.mail.MessagingException;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,11 +16,14 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.swp.hr_backend.entity.Account;
+import com.swp.hr_backend.exception.custom.BaseCustomException;
 import com.swp.hr_backend.exception.custom.CustomBadRequestException;
 import com.swp.hr_backend.exception.custom.CustomDuplicateFieldException;
 import com.swp.hr_backend.exception.custom.CustomNotFoundException;
 import com.swp.hr_backend.exception.custom.CustomUnauthorizedException;
 import com.swp.hr_backend.model.CustomError;
+import com.swp.hr_backend.model.request.ChangeRoleRequest;
+import com.swp.hr_backend.model.request.ForgotPasswordRequest;
 import com.swp.hr_backend.model.request.SignupRequest;
 import com.swp.hr_backend.model.response.AccountResponse;
 import com.swp.hr_backend.service.AccountService;
@@ -92,6 +96,25 @@ public class AccountController {
 			throw new CustomNotFoundException(CustomError.builder().code("404").message("Not Found Anything").build());
 		}
 		return ResponseEntity.ok(accountResponses);
+	}
+	
+	@PostMapping("/forgotPassword")
+	public ResponseEntity<Boolean> forgotPassword(@RequestBody ForgotPasswordRequest forgotPasswordReq) throws BaseCustomException {
+		boolean result = accService.forgotPassword(forgotPasswordReq);
+		if(!result) {
+			throw new CustomNotFoundException(CustomError.builder().code("403").message("Account is null").build());
+		}
+		return ResponseEntity.ok(true);
+	}
+	
+	@PostMapping("/changeRole")
+	public ResponseEntity<Boolean> changeRole(@RequestBody ChangeRoleRequest changeRoleReq) throws BaseCustomException {
+		boolean result = accService.changeAccountRole(changeRoleReq);
+		if(result) {
+		return ResponseEntity.ok(true);
+		} else {
+			return new ResponseEntity<Boolean>(result, HttpStatus.BAD_REQUEST);
+		}
 	}
 	
 }

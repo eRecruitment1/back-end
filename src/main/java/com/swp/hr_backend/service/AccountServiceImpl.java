@@ -16,12 +16,16 @@ import com.swp.hr_backend.entity.Account;
 import com.swp.hr_backend.entity.Candidate;
 import com.swp.hr_backend.entity.Employee;
 import com.swp.hr_backend.entity.Role;
+import com.swp.hr_backend.exception.custom.BaseCustomException;
+import com.swp.hr_backend.exception.custom.CustomBadRequestException;
 import com.swp.hr_backend.exception.custom.CustomDuplicateFieldException;
 import com.swp.hr_backend.exception.custom.CustomNotFoundException;
 import com.swp.hr_backend.exception.custom.CustomUnauthorizedException;
 import com.swp.hr_backend.model.CustomError;
 import com.swp.hr_backend.model.mapper.ObjectMapper;
+import com.swp.hr_backend.model.request.ChangeRoleRequest;
 import com.swp.hr_backend.model.request.DataMailRequest;
+import com.swp.hr_backend.model.request.ForgotPasswordRequest;
 import com.swp.hr_backend.model.request.ProfileRequest;
 import com.swp.hr_backend.model.request.SignupRequest;
 import com.swp.hr_backend.model.response.AccountResponse;
@@ -31,6 +35,7 @@ import com.swp.hr_backend.repository.CandidateRepository;
 import com.swp.hr_backend.repository.EmployeeRepository;
 import com.swp.hr_backend.repository.RoleRepository;
 import com.swp.hr_backend.utils.AccountRole;
+import com.swp.hr_backend.utils.JwtTokenUtil;
 import com.swp.hr_backend.utils.MailBody;
 import com.swp.hr_backend.utils.MailSubjectConstant;
 
@@ -45,6 +50,7 @@ public class AccountServiceImpl implements AccountService {
 	private final RoleRepository roleRepository;
 	private final EmployeeRepository employeeRepository;
 	private final MailService mailService;
+	private final JwtTokenUtil jwtTokenUtil;
 
 	@Override
 	public Account findAccountByUsername(String username) {
@@ -247,6 +253,64 @@ public class AccountServiceImpl implements AccountService {
 		}
 		return accountResponses;
 	}
+	
+	@Override
+	public boolean forgotPassword(ForgotPasswordRequest forgotPassReq) throws BaseCustomException {
+		if (forgotPassReq.getAccountId() == null || forgotPassReq.getNewPassword() == null)
+			throw new CustomBadRequestException(CustomError.builder().code("400")
+					.message("You need to request with Account Id and New Password!").build());
+		Account acc = accountRepository.findById(forgotPassReq.getAccountId()).get();
+		if (acc == null)
+			throw new CustomNotFoundException(CustomError.builder().code("404").message("Not Found Account!").build());
+		//acc.setPassword(new BCryptPasswordEncoder().encode(forgotPassReq.getNewPassword()));
+		acc.setPassword(forgotPassReq.getNewPassword());
+		if (accountRepository.save(acc) != null)
+			return true;
+		return false;
+	}
+
+	@Override
+	public boolean changeAccountRole(ChangeRoleRequest roleRequest) throws BaseCustomException {
+		if (roleRequest == null || roleRequest.getAccountId() == null)
+			throw new CustomBadRequestException(
+					CustomError.builder().code("400").message("You need to request with Account Id!").build());
+		if (jwtTokenUtil.checkPermissionCurrentAccount(AccountRole.ADMIN)) {
+			Account acc = accountRepository.findById(roleRequest.getAccountId()).get();
+			if (acc == null)
+				throw new CustomNotFoundException(
+						CustomError.builder().code("404").message("Not Found Account!").build());
+			String role = jwtTokenUtil.getRoleNameByAccountId(acc.getAccountID());
+			if(role.equalsIgnoreCase(AccountRole.CANDIDATE.toString()))
+				throw new CustomBadRequestException(CustomError.builder().code("403")
+						.message("Cannot change role of candidate account!").build());
+			if (!roleRequest.getRole().equalsIgnoreCase(AccountRole.CANDIDATE.toString())) {
+				if(setRoleAccount(acc, roleRequest.getRole())) return true;
+				else throw new CustomNotFoundException(CustomError.builder().code("404").message("Not Found!").build());
+			} else throw new CustomBadRequestException(CustomError.builder().code("403")
+					.message("Cannot change role to Candidate!").build());
+		} else
+			throw new CustomUnauthorizedException(CustomError.builder().code("401")
+					.message("Access denied, you need to be Admin to do this!").build());
+	}
+
+	private boolean setRoleAccount(Account acc, String role) {
+		int roleValue = AccountRole.numOfRole(role);
+		Employee employee = employeeRepository.findByAccountID(acc.getAccountID());
+		if (roleValue > 0 && roleValue < 5) {
+			System.out.println(roleValue);
+			if (employee == null) {
+				return false;
+			}
+			Role nRole = roleRepository.findById(roleValue).get();
+			if (nRole == null)
+				return false;
+			employee.setRole(nRole);
+			if (employeeRepository.save(employee) != null)
+				return true;
+		}
+		return false;
+	}
+
 
 
 }

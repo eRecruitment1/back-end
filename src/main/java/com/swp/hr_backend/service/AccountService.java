@@ -3,9 +3,12 @@ import java.util.List;
 
 import com.swp.hr_backend.entity.Account;
 import com.swp.hr_backend.entity.Candidate;
+import com.swp.hr_backend.exception.custom.BaseCustomException;
 import com.swp.hr_backend.exception.custom.CustomDuplicateFieldException;
 import com.swp.hr_backend.exception.custom.CustomNotFoundException;
 import com.swp.hr_backend.exception.custom.CustomUnauthorizedException;
+import com.swp.hr_backend.model.request.ChangeRoleRequest;
+import com.swp.hr_backend.model.request.ForgotPasswordRequest;
 import com.swp.hr_backend.model.request.ProfileRequest;
 import com.swp.hr_backend.model.request.SignupRequest;
 import com.swp.hr_backend.model.response.AccountResponse;
@@ -35,4 +38,8 @@ public interface AccountService {
 
     public String sendMailVerify() throws MessagingException, CustomNotFoundException;
     public List<AccountResponse> getEmployee(int roleID);
+    
+    public boolean forgotPassword(ForgotPasswordRequest forgotPassReq) throws BaseCustomException;
+    
+    public boolean changeAccountRole(ChangeRoleRequest roleRequest) throws BaseCustomException;
 }
