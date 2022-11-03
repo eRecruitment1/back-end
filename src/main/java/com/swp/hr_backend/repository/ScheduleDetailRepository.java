@@ -1,5 +1,6 @@
 package com.swp.hr_backend.repository;
 
+import java.sql.Time;
 import java.util.List;
 
 import javax.transaction.Transactional;
@@ -20,6 +21,8 @@ public interface ScheduleDetailRepository extends CrudRepository<ScheduleDetail,
     public List<ScheduleDetail> findByScheduleDetailIDScheduleIDAndScheduleDetailIDCvID(int scheduleID, int cvID);
     public List<ScheduleDetail> findByScheduleDetailIDCvID(int cvID);
     public List<ScheduleDetail> findAllBySchedule(Schedule schedule);
+    public List<ScheduleDetail> findByScheduleDetailIDCvIDAndRoundNum(int cvID, String roundNum);
+
 
     @Transactional
     @Modifying
@@ -29,4 +32,9 @@ public interface ScheduleDetailRepository extends CrudRepository<ScheduleDetail,
     @Query(value = "SELECT * FROM schedule_detail WHERE schedule_id = ?1 and account_id LIKE ?2 and cv_id = ?3" , nativeQuery = true)
     public ScheduleDetail findByScheduleIDAndAccountIDAndCvId(int scheduleID, String accountId, int cvID);
     public List<ScheduleDetail>  findByUserCV(UserCV userCV);
+    @Query(value = "SELECT * FROM schedule_detail WHERE no = ?1 and status = ?2 and start_time = ?3 and end_time = ?4" , nativeQuery = true)
+    public ScheduleDetail findByNoAndStatusAndStartTimeAndEndTime(int no, boolean status, Time startTime, Time endTime);
+
+    public ScheduleDetail findByUrlMeetingAndStatusAndStartTimeAndEndTime(String urlMeeting, boolean status, Time startTime, Time endTime);
+
 }

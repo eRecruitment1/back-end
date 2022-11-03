@@ -22,7 +22,7 @@ public class ScheduleDetail implements Serializable {
 
     @Column(name = "status",nullable = false)
     private boolean status;
-    @Column(name = "urlMeeting",nullable = false, length = 512)
+    @Column(name = "urlMeeting",nullable = true, length = 512)
     private String urlMeeting;
     @Column(name = "start_time" , nullable = false)
     private Time startTime;
@@ -49,7 +49,11 @@ public class ScheduleDetail implements Serializable {
     @OneToOne(mappedBy = "scheduleDetail", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private Note note;
 
-    public ScheduleDetail(Schedule schedule, UserCV userCV, boolean status, Time startTime, Time endTime, String urlMeeting, String roundNum){
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "no", nullable = true)
+    private Room room;
+
+    public ScheduleDetail(Schedule schedule, UserCV userCV, boolean status, Time startTime, Time endTime, String urlMeeting, String roundNum, Room room){
         this.schedule = schedule;
         this.userCV = userCV;
         this.status = status;
@@ -57,6 +61,6 @@ public class ScheduleDetail implements Serializable {
         this.endTime = endTime;
         this.urlMeeting = urlMeeting;
         this.roundNum = roundNum;
+        this.room = room;
     }
-
 }
