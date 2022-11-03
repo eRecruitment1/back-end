@@ -66,8 +66,9 @@ public class NoteServiceImpl implements NoteService {
 					return ObjectMapper.noteToNoteResponse(noteRepo.save(note));
 				} else {
 					Note nNote = ObjectMapper.noteRequestToNote(noteReq, scheduleDetail);
+					Note n = noteRepo.save(nNote);
 					if (nNote != null)
-						return ObjectMapper.noteToNoteResponse(noteRepo.save(nNote));
+						return ObjectMapper.noteToNoteResponse(n);
 				}
 			} else
 				throw new CustomNotFoundException(

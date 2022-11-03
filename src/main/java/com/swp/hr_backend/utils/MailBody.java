@@ -142,7 +142,11 @@ public class MailBody {
                 "</div></div>";
     }
 
-    public static String interviewSchedule(String firstname, Date date, Time startTime, Time endTime, String url, String round){
+    public static String interviewSchedule(String firstname, Date date, Time startTime, Time endTime, String url, String round, String roomName){
+        String text = "";
+        if (roomName.isEmpty()) text = "<p style=\"Margin:0 0 20px 0;font-size:19px;line-height:25px;color:#0b0c0c\">Hi " + firstname + ",</p><p style=\"Margin:0 0 20px 0;font-size:19px;line-height:25px;color:#0b0c0c\"> You have a new schedule: </p><blockquote style=\"Margin:0 0 20px 0;border-left:10px solid #b1b4b6;padding:15px 0 0.1px 15px;font-size:19px;line-height:25px\"><p style=\"Margin:0 0 20px 0;font-size:19px;line-height:25px;color:#0b0c0c\"> <p>Date: " + date + "</p><p>Time: " + startTime + " - " + endTime + "</p><p>Round: " + round + "</p><p>Link Meeting: <a href=\"" + url + "\">" + url + "</a> </p> </p></blockquote>\n <p>Please join on time.</p>";
+        else if (url.isEmpty()) text = "<p style=\"Margin:0 0 20px 0;font-size:19px;line-height:25px;color:#0b0c0c\">Hi " + firstname + ",</p><p style=\"Margin:0 0 20px 0;font-size:19px;line-height:25px;color:#0b0c0c\"> You have a new schedule: </p><blockquote style=\"Margin:0 0 20px 0;border-left:10px solid #b1b4b6;padding:15px 0 0.1px 15px;font-size:19px;line-height:25px\"><p style=\"Margin:0 0 20px 0;font-size:19px;line-height:25px;color:#0b0c0c\"> <p>Date: " + date + "</p><p>Time: " + startTime + " - " + endTime + "</p><p>Round: " + round + "</p><p>Address: " + roomName + ", 256, Nguyen Van Tang Street, Long Thanh My Ward, District 9, Thu Duc City</p> </p></blockquote>\n <p>Please join on time.</p>";
+        else text = "<p style=\"Margin:0 0 20px 0;font-size:19px;line-height:25px;color:#0b0c0c\">Hi " + firstname + ",</p><p style=\"Margin:0 0 20px 0;font-size:19px;line-height:25px;color:#0b0c0c\"> You have a new schedule: </p><blockquote style=\"Margin:0 0 20px 0;border-left:10px solid #b1b4b6;padding:15px 0 0.1px 15px;font-size:19px;line-height:25px\"><p style=\"Margin:0 0 20px 0;font-size:19px;line-height:25px;color:#0b0c0c\"> <p>Date: " + date + "</p><p>Time: " + startTime + " - " + endTime + "</p><p>Round: " + round + "</p><p>Link Meeting: <a href=\"" + url + "\">" + url + "</a> </p><p>Address: " + roomName + ", 256, Nguyen Van Tang Street, Long Thanh My Ward, District 9, Thu Duc City</p> </p></blockquote>\n <p>Please join on time.</p>";
         return "<div style=\"font-family:Helvetica,Arial,sans-serif;font-size:16px;margin:0;color:#0b0c0c\">\n" +
                 "\n" +
                 "<span style=\"display:none;font-size:1px;color:#fff;max-height:0\"></span>\n" +
@@ -198,7 +202,7 @@ public class MailBody {
                 "      <td width=\"10\" valign=\"middle\"><br></td>\n" +
                 "      <td style=\"font-family:Helvetica,Arial,sans-serif;font-size:19px;line-height:1.315789474;max-width:560px\">\n" +
                 "        \n" +
-                "            <p style=\"Margin:0 0 20px 0;font-size:19px;line-height:25px;color:#0b0c0c\">Hi " + firstname + ",</p><p style=\"Margin:0 0 20px 0;font-size:19px;line-height:25px;color:#0b0c0c\"> You have a new schedule: </p><blockquote style=\"Margin:0 0 20px 0;border-left:10px solid #b1b4b6;padding:15px 0 0.1px 15px;font-size:19px;line-height:25px\"><p style=\"Margin:0 0 20px 0;font-size:19px;line-height:25px;color:#0b0c0c\"> <p>Date: " + date + "</p><p>Time: " + startTime + " - " + endTime + "</p><p>Round: " + round + "</p><p>Link Meeting: <a href=\"" + url + "\">" + url + "</a> </p> </p></blockquote>\n <p>Please join on time.</p>" +
+                text +
                 "        \n" +
                 "      </td>\n" +
                 "      <td width=\"10\" valign=\"middle\"><br></td>\n" +
@@ -211,7 +215,11 @@ public class MailBody {
                 "</div></div>";
     }
 
-    public static String candidateSchedule(String firstname, Date date, Time startTime, Time endTime, String url, String round){
+    public static String candidateSchedule(String firstname, Date date, Time startTime, Time endTime, String url, String round, String roomName){
+        String text = "";
+        if (roomName.isEmpty()) text = "<p style=\"Margin:0 0 20px 0;font-size:19px;line-height:25px;color:#0b0c0c\">Hi " + firstname + ",</p><p style=\"Margin:0 0 20px 0;font-size:19px;line-height:25px;color:#0b0c0c\"> You have been invited for an interview. Follow information of interview below: </p><blockquote style=\"Margin:0 0 20px 0;border-left:10px solid #b1b4b6;padding:15px 0 0.1px 15px;font-size:19px;line-height:25px\"><p style=\"Margin:0 0 20px 0;font-size:19px;line-height:25px;color:#0b0c0c\"> <p>Date: " + date + "</p><p>Time: " + startTime + " - " + endTime + "</p><p>Round: " + round + "</p><p>Link Meeting: <a href=\"" + url + "\">" + url + "</a> </p> </p></blockquote>\n <p>Please join on time.</p>";
+        else if (url.isEmpty()) text = "<p style=\"Margin:0 0 20px 0;font-size:19px;line-height:25px;color:#0b0c0c\">Hi " + firstname + ",</p><p style=\"Margin:0 0 20px 0;font-size:19px;line-height:25px;color:#0b0c0c\"> You have been invited for an interview. Follow information of interview below: </p><blockquote style=\"Margin:0 0 20px 0;border-left:10px solid #b1b4b6;padding:15px 0 0.1px 15px;font-size:19px;line-height:25px\"><p style=\"Margin:0 0 20px 0;font-size:19px;line-height:25px;color:#0b0c0c\"> <p>Date: " + date + "</p><p>Time: " + startTime + " - " + endTime + "</p><p>Round: " + round + "</p><p>Address: " + roomName + ", 256, Nguyen Van Tang Street, Long Thanh My Ward, District 9, Thu Duc City</p> </p></blockquote>\n <p>Please join on time.</p>";
+        else text = "<p style=\"Margin:0 0 20px 0;font-size:19px;line-height:25px;color:#0b0c0c\">Hi " + firstname + ",</p><p style=\"Margin:0 0 20px 0;font-size:19px;line-height:25px;color:#0b0c0c\"> You have been invited for an interview. Follow information of interview below: </p><blockquote style=\"Margin:0 0 20px 0;border-left:10px solid #b1b4b6;padding:15px 0 0.1px 15px;font-size:19px;line-height:25px\"><p style=\"Margin:0 0 20px 0;font-size:19px;line-height:25px;color:#0b0c0c\"> <p>Date: " + date + "</p><p>Time: " + startTime + " - " + endTime + "</p><p>Round: " + round + "</p><p>Link Meeting: <a href=\"" + url + "\">" + url + "</a> </p><p>Address: " + roomName + ", 256, Nguyen Van Tang Street, Long Thanh My Ward, District 9, Thu Duc City</p> </p></blockquote>\n <p>Please join on time.</p>";
         return "<div style=\"font-family:Helvetica,Arial,sans-serif;font-size:16px;margin:0;color:#0b0c0c\">\n" +
                 "\n" +
                 "<span style=\"display:none;font-size:1px;color:#fff;max-height:0\"></span>\n" +
@@ -267,7 +275,7 @@ public class MailBody {
                 "      <td width=\"10\" valign=\"middle\"><br></td>\n" +
                 "      <td style=\"font-family:Helvetica,Arial,sans-serif;font-size:19px;line-height:1.315789474;max-width:560px\">\n" +
                 "        \n" +
-                "            <p style=\"Margin:0 0 20px 0;font-size:19px;line-height:25px;color:#0b0c0c\">Hi " + firstname + ",</p><p style=\"Margin:0 0 20px 0;font-size:19px;line-height:25px;color:#0b0c0c\"><p>You have been invited for an interview. Follow information of interview below:</p><blockquote style=\"Margin:0 0 20px 0;border-left:10px solid #b1b4b6;padding:15px 0 0.1px 15px;font-size:19px;line-height:25px\"><p style=\"Margin:0 0 20px 0;font-size:19px;line-height:25px;color:#0b0c0c\"> <p>Date: " + date + "</p><p>Time: " + startTime + " - " + endTime + "</p><p>Round: " + round + "</p><p>Link Meeting: <a href=\"" + url + "\">" + url + "</a> </p> </p></blockquote>\n <p>Please join on time.</p>" +
+                text +
                 "        \n" +
                 "      </td>\n" +
                 "      <td width=\"10\" valign=\"middle\"><br></td>\n" +

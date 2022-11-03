@@ -61,6 +61,8 @@ public class ObjectMapper {
 	}
 
 	public static ScheduleDetailResponse scheduleToScheduleDetailResponse(Schedule schedule, ScheduleDetail scheduleDetail, List<String> interviewerIDs){
+		String roomName = "";
+		if (scheduleDetail.getRoom() != null) roomName = scheduleDetail.getRoom().getRoomName();
 		ScheduleDetailResponse scheduleDetailResponse = ScheduleDetailResponse.builder()
 				.scheduleID(schedule.getScheduleID())
 				.date(schedule.getDate())
@@ -71,6 +73,7 @@ public class ObjectMapper {
 				.roundNum(scheduleDetail.getRoundNum())
 				.cvID(scheduleDetail.getUserCV().getCvID())
 				.interviewerID(interviewerIDs)
+				.roomName(roomName)
 				.build();
 		return scheduleDetailResponse;
 	}

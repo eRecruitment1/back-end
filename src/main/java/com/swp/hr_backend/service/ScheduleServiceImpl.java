@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service;
 import javax.mail.MessagingException;
 import java.sql.Date;
 import java.sql.Time;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -37,6 +38,7 @@ public class ScheduleServiceImpl implements ScheduleService {
     private final JwtTokenUtil jwtTokenUtil;
     private final MailService mailService;
     private final AccountRepository accountRepository;
+    private final RoomRepository roomRepository;
 
     @Override
     public List<ScheduleDetailResponse> getSchedule() throws CustomUnauthorizedException, CustomNotFoundException {
@@ -120,11 +122,18 @@ public class ScheduleServiceImpl implements ScheduleService {
         Account acc = jwtTokenUtil.loggedAccount();
         if (jwtTokenUtil.checkPermissionAccount(acc, AccountRole.HREMPLOYEE)
                 || jwtTokenUtil.checkPermissionAccount(acc, AccountRole.HRMANAGER)) {
-            checkValidRequest(createScheduleRequest.getRound(), createScheduleRequest.getCvID(),
-                    createScheduleRequest.getInterviewerIDs());
+            String urlMeeting = createScheduleRequest.getUrlMeeting();
+            Time startTime = createScheduleRequest.getStartTime();
+            Time endTime = createScheduleRequest.getEndTime();
+            String roundNum = createScheduleRequest.getRound();
+            UserCV userCV = userCVRepository.findByCvID(createScheduleRequest.getCvID());
+            Room room = roomRepository.findByRoomName(createScheduleRequest.getRoomName());
+            checkValidRequest(roundNum, createScheduleRequest.getCvID(), createScheduleRequest.getInterviewerIDs());
+            checkValidTime(createScheduleRequest.getDate(), startTime, endTime);
             checkValidCV(createScheduleRequest.getCvID());
             checkValidInterviewer(createScheduleRequest.getInterviewerIDs(), createScheduleRequest.getDate(),
-                    createScheduleRequest.getStartTime(), createScheduleRequest.getEndTime());
+                    startTime, endTime);
+            checkValidUrlAndRoom(urlMeeting, room, createScheduleRequest.getDate(), startTime, endTime);
             Schedule schedule = scheduleRepository.findByDate(createScheduleRequest.getDate());
             if (schedule == null) {
                 schedule = new Schedule();
@@ -133,22 +142,9 @@ public class ScheduleServiceImpl implements ScheduleService {
             }
             List<ScheduleDetail> scheduleDetails = new ArrayList<>();
             boolean status = false;
-            String urlMeeting = createScheduleRequest.getUrlMeeting();
-            Time startTime = createScheduleRequest.getStartTime();
-            Time endTime = createScheduleRequest.getEndTime();
-            String roundNum = createScheduleRequest.getRound();
-            UserCV userCV = userCVRepository.findByCvID(createScheduleRequest.getCvID());
-
             for (String employeeID : createScheduleRequest.getInterviewerIDs()) {
                 ScheduleDetail scheduleDetail = new ScheduleDetail(schedule, userCV, status, startTime, endTime,
-                        urlMeeting, roundNum);
-                // scheduleDetail.setSchedule(schedule);
-                // scheduleDetail.setStatus(false);
-                // scheduleDetail.setStartTime();
-                // scheduleDetail.setEndTime();
-                // scheduleDetail.setUserCV();
-                // scheduleDetail.setUrlMeeting();
-                // scheduleDetail.setRoundNum();
+                        urlMeeting, roundNum, room);
                 scheduleDetail.setInterviewer(employeeRepository.findByAccountID(employeeID));
                 scheduleDetail.setScheduleDetailID(
                         new ScheduleDetailID(schedule.getScheduleID(), employeeID, createScheduleRequest.getCvID()));
@@ -163,8 +159,8 @@ public class ScheduleServiceImpl implements ScheduleService {
                         dataMailRequest.setTo(sd.getInterviewer().getEmail());
                         mailService.sendHtmlMail(dataMailRequest,
                                 MailBody.interviewSchedule(sd.getInterviewer().getFirstname(),
-                                        sd.getSchedule().getDate(), sd.getStartTime(), sd.getEndTime(),
-                                        sd.getUrlMeeting(), sd.getRoundNum()));
+                                        sd.getSchedule().getDate(), startTime, endTime,
+                                        urlMeeting, roundNum, createScheduleRequest.getRoomName()));
                     }
                 }
                 if (userCV.getCandidate().isEnabled()) {
@@ -172,10 +168,11 @@ public class ScheduleServiceImpl implements ScheduleService {
                     dataMailRequest.setTo(userCV.getCandidate().getEmail());
                     mailService.sendHtmlMail(dataMailRequest,
                             MailBody.candidateSchedule(userCV.getCandidate().getFirstname(),
-                                    createScheduleRequest.getDate(), startTime, endTime, urlMeeting, roundNum));
+                                    createScheduleRequest.getDate(), startTime, endTime, urlMeeting, roundNum
+                                    , createScheduleRequest.getRoomName()));
                 }
                 return ObjectMapper.scheduleToScheduleDetailResponse(schedule,
-                        new ScheduleDetail(schedule, userCV, status, startTime, endTime, urlMeeting, roundNum),
+                        new ScheduleDetail(schedule, userCV, status, startTime, endTime, urlMeeting, roundNum, room),
                         createScheduleRequest.getInterviewerIDs());
             } else
                 throw new CustomBadRequestException(
@@ -183,6 +180,32 @@ public class ScheduleServiceImpl implements ScheduleService {
         } else
             throw new CustomUnauthorizedException(CustomError.builder().code("unauthorized")
                     .message("Access denied, you need to be HREMPLOYEE/ HRMANAGER to do this!").build());
+    }
+
+    public void checkValidUrlAndRoom(String urlMeeting, Room room, Date date, Time startTime, Time endTime) throws CustomBadRequestException{
+        if (room == null && urlMeeting.isEmpty())
+            throw new CustomBadRequestException(CustomError.builder().code("403")
+                    .message("Both room and url meeting are empty").build());
+        ScheduleDetail scheduleDetail;
+        Schedule schedule;
+        if (room != null) {
+            scheduleDetail = scheduleDetailRepository.findByNoAndStatusAndStartTimeAndEndTime(room.getNo(), false, startTime, endTime);
+            if (scheduleDetail != null) {
+                schedule = scheduleRepository.findByScheduleID(scheduleDetail.getScheduleDetailID().getScheduleID());
+                if (schedule.getDate().toString().equals(date.toString()))
+                    throw new CustomBadRequestException(CustomError.builder().code("403")
+                            .message("Room is invalid this time").build());
+            }
+        }
+        if (urlMeeting != null) {
+            scheduleDetail = scheduleDetailRepository.findByUrlMeetingAndStatusAndStartTimeAndEndTime(urlMeeting, false, startTime, endTime);
+            if (scheduleDetail != null) {
+                schedule = scheduleRepository.findByScheduleID(scheduleDetail.getScheduleDetailID().getScheduleID());
+                if (schedule.getDate().toString().equals(date.toString()))
+                    throw new CustomBadRequestException(CustomError.builder().code("403")
+                            .message("Url is invalid this time").build());
+            }
+        }
     }
 
     public void checkValidRequest(String round, int cvID, List<String> interviewerIDs)
@@ -199,6 +222,9 @@ public class ScheduleServiceImpl implements ScheduleService {
         if (round.equals(Round.ROUND2.toString()) && !finalResult.getResultStatus().equals(Round.ROUND1.toString()))
             throw new CustomBadRequestException(CustomError.builder().code("403")
                     .message("Round of schedule is not suited with Round of CV").build());
+        if (scheduleDetailRepository.findByScheduleDetailIDCvIDAndRoundNum(cvID, round) != null)
+            throw new CustomBadRequestException(CustomError.builder().code("403")
+                    .message("This CV has been scheduled for this round before").build());
         if (round.equals(Round.ROUND1.toString()) && interviewerIDs.size() != 1)
             throw new CustomBadRequestException(
                     CustomError.builder().code("403").message("This round require 1 interviewer (HREMPLOYEE)").build());
@@ -250,6 +276,18 @@ public class ScheduleServiceImpl implements ScheduleService {
         }
     }
 
+    public void checkValidTime(Date date, Time startTime, Time endTime) throws CustomBadRequestException {
+        LocalDateTime end = LocalDateTime.parse(date.toString() + "T" + endTime.toString());
+        LocalDateTime start = LocalDateTime.parse(date.toString() + "T" + startTime.toString());
+        long duration = Duration.between(start, end).toMinutes();
+        if (start.isAfter(end)) throw new CustomBadRequestException(CustomError.builder().code("403")
+                .message("Time is invalid").build());
+        if (end.isBefore(LocalDateTime.now())) throw new CustomBadRequestException(CustomError.builder().code("403")
+                .message("Schedule must take place in the future").build());
+        if (duration < 45) throw new CustomBadRequestException(CustomError.builder().code("403")
+                .message("Time is not enough to create a meeting").build());
+    }
+
     @Override
     public ScheduleDetailResponse updateSchedule(UpdateScheduleRequest updateScheduleRequest)
             throws CustomUnauthorizedException, CustomBadRequestException, MessagingException {
@@ -282,6 +320,7 @@ public class ScheduleServiceImpl implements ScheduleService {
                 Time startTime = currentSchedule.get(0).getStartTime();
                 Time endTime = currentSchedule.get(0).getEndTime();
                 String roundNum = updateScheduleRequest.getNewRoundNum();
+                Room room = currentSchedule.get(0).getRoom();
                 if (roundNum == null || roundNum.isEmpty())
                     roundNum = currentSchedule.get(0).getRoundNum();
                 UserCV userCV = userCVRepository.findByCvID(updateScheduleRequest.getNewCVID());
@@ -292,7 +331,7 @@ public class ScheduleServiceImpl implements ScheduleService {
                 }
                 for (String interviewerID : updateScheduleRequest.getNewInterviewerIDs()) {
                     ScheduleDetail scheduleDetail = new ScheduleDetail(schedule, userCV, status, startTime, endTime,
-                            urlMeeting, roundNum);
+                            urlMeeting, roundNum, room);
                     scheduleDetail.setInterviewer(employeeRepository.findByAccountID(interviewerID));
                     scheduleDetail.setScheduleDetailID(new ScheduleDetailID(schedule.getScheduleID(), interviewerID,
                             updateScheduleRequest.getNewCVID()));
@@ -302,7 +341,7 @@ public class ScheduleServiceImpl implements ScheduleService {
                 }
                 sendMailForUpdateSchedule(updateScheduleRequest, interviewerIDs, currentSchedule.get(0).getRoundNum());
                 return ObjectMapper.scheduleToScheduleDetailResponse(schedule,
-                        new ScheduleDetail(schedule, userCV, status, startTime, endTime, urlMeeting, roundNum),
+                        new ScheduleDetail(schedule, userCV, status, startTime, endTime, urlMeeting, roundNum, room),
                         updateScheduleRequest.getNewInterviewerIDs());
             } else
                 throw new CustomBadRequestException(
@@ -409,6 +448,8 @@ public class ScheduleServiceImpl implements ScheduleService {
         List<String> changedInterviewer = getUpdatedInterviewer(updateScheduleRequest, oldInterviewerIDs);
         List<String> deletedInterviewer = getDeletedInterviewer(updateScheduleRequest, oldInterviewerIDs);
         DataMailRequest dataMailRequest = new DataMailRequest();
+        String roomName = "";
+        if (scheduleDetails.get(0).getRoom()!=null) roomName =scheduleDetails.get(0).getRoom().getRoomName();
         if (updateScheduleRequest.getNewRoundNum().equals(oldRound)) {
             if (updateScheduleRequest.getNewCVID() != updateScheduleRequest.getNewCVID()) {
                 if (oldCV.getCandidate().isEnabled()) {
@@ -426,7 +467,7 @@ public class ScheduleServiceImpl implements ScheduleService {
                             MailBody.candidateSchedule(newCV.getCandidate().getFirstname(),
                                     updateScheduleRequest.getDate(), scheduleDetails.get(0).getStartTime(),
                                     scheduleDetails.get(0).getEndTime(), scheduleDetails.get(0).getUrlMeeting(),
-                                    oldRound));
+                                    oldRound, roomName));
                 }
             }
             if (changedInterviewer.size() != 0) {
@@ -448,7 +489,7 @@ public class ScheduleServiceImpl implements ScheduleService {
                                 MailBody.interviewSchedule(employeeRepository.findByAccountID(ci).getFirstname(),
                                         updateScheduleRequest.getDate(), scheduleDetails.get(0).getStartTime(),
                                         scheduleDetails.get(0).getEndTime(), scheduleDetails.get(0).getUrlMeeting(),
-                                        oldRound));
+                                        oldRound, roomName));
                     }
                 }
             }
@@ -478,7 +519,7 @@ public class ScheduleServiceImpl implements ScheduleService {
                             MailBody.interviewSchedule(employeeRepository.findByAccountID(ci).getFirstname(),
                                     updateScheduleRequest.getDate(), scheduleDetails.get(0).getStartTime(),
                                     scheduleDetails.get(0).getEndTime(), scheduleDetails.get(0).getUrlMeeting(),
-                                    updateScheduleRequest.getNewRoundNum()));
+                                    updateScheduleRequest.getNewRoundNum(), roomName));
                 }
             }
             if (newCV.getCandidate().isEnabled()) {
@@ -487,7 +528,7 @@ public class ScheduleServiceImpl implements ScheduleService {
                 mailService.sendHtmlMail(dataMailRequest,
                         MailBody.candidateSchedule(newCV.getCandidate().getFirstname(), updateScheduleRequest.getDate(),
                                 scheduleDetails.get(0).getStartTime(), scheduleDetails.get(0).getEndTime(),
-                                scheduleDetails.get(0).getUrlMeeting(), updateScheduleRequest.getNewRoundNum()));
+                                scheduleDetails.get(0).getUrlMeeting(), updateScheduleRequest.getNewRoundNum(), roomName));
             }
         }
     }

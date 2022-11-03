@@ -188,7 +188,8 @@ public class CVServiceImpl implements CVService {
 							CustomError.builder().code("404").message("Not Found Final Result!").build());
 				String resultStatus = cv.getFinalResult().getResultStatus();
 				if (resultStatus.toLowerCase().equals(Round.NOT_PASS.toString().toLowerCase())) {
-					sendMail("notpass", candidate.getEmail(), candidate.getFirstname());
+					if (candidate.isEnabled())
+						sendMail("notpass", candidate.getEmail(), candidate.getFirstname());
 					return false;
 				}
 				if (jwtTokenUtil.checkPermissionAccount(curAcc, AccountRole.HREMPLOYEE)) {
@@ -198,10 +199,12 @@ public class CVServiceImpl implements CVService {
 									.message("Still on meeting, cannot evaluate cv...").build());
 						if (isPass) {
 							cv.getFinalResult().setResultStatus(Round.ROUND1.toString());
+							if (candidate.isEnabled())
 							sendMail("round1", candidate.getEmail(), candidate.getFirstname());
 						} else {
 							cv.getFinalResult().setResultStatus(Round.NOT_PASS.toString());
-							sendMail("notpass", candidate.getEmail(), candidate.getFirstname());
+							if (candidate.isEnabled())
+								sendMail("notpass", candidate.getEmail(), candidate.getFirstname());
 						}
 					} else
 						throw new CustomNotFoundException(CustomError.builder().code("403")
@@ -219,18 +222,22 @@ public class CVServiceImpl implements CVService {
 									.message("Still on meeting, cannot evaluate cv...").build());
 						if (isPass) {
 							cv.getFinalResult().setResultStatus(Round.PASS.toString());
-							sendMail("round2", candidate.getEmail(), candidate.getFirstname());
+							if (candidate.isEnabled())
+								sendMail("round2", candidate.getEmail(), candidate.getFirstname());
 						} else {
 							cv.getFinalResult().setResultStatus(Round.NOT_PASS.toString());
-							sendMail("notpass", candidate.getEmail(), candidate.getFirstname());
+							if (candidate.isEnabled())
+								sendMail("notpass", candidate.getEmail(), candidate.getFirstname());
 						}
 					} else if (resultStatus.toLowerCase().equals(Round.ROUND2.toString().toLowerCase())) {
 						if (isPass) {
 							cv.getFinalResult().setResultStatus(Round.PASS.toString());
-							sendMail("pass", candidate.getEmail(), candidate.getFirstname());
+							if (candidate.isEnabled())
+								sendMail("pass", candidate.getEmail(), candidate.getFirstname());
 						} else {
 							cv.getFinalResult().setResultStatus(Round.NOT_PASS.toString());
-							sendMail("notpass", candidate.getEmail(), candidate.getFirstname());
+							if (candidate.isEnabled())
+								sendMail("notpass", candidate.getEmail(), candidate.getFirstname());
 						}
 					} else
 						throw new CustomNotFoundException(CustomError.builder().code("403")
