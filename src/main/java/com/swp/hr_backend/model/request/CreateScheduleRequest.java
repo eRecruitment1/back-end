@@ -20,7 +20,7 @@ public class CreateScheduleRequest {
     List<String> interviewerIDs;
     @NotEmpty
     String round;
-    @NotEmpty
+    String roomName;
     String urlMeeting;
     @NotEmpty
     int cvID;
