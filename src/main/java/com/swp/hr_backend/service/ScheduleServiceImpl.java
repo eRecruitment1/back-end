@@ -186,6 +186,9 @@ public class ScheduleServiceImpl implements ScheduleService {
         if (room == null && urlMeeting.isEmpty())
             throw new CustomBadRequestException(CustomError.builder().code("403")
                     .message("Both room and url meeting are empty").build());
+        if (room != null && !urlMeeting.isEmpty())
+            throw new CustomBadRequestException(CustomError.builder().code("403")
+                    .message("Just only choose 1 (urlMeeting or room)").build());
         ScheduleDetail scheduleDetail;
         Schedule schedule;
         if (room != null) {
@@ -222,7 +225,7 @@ public class ScheduleServiceImpl implements ScheduleService {
         if (round.equals(Round.ROUND2.toString()) && !finalResult.getResultStatus().equals(Round.ROUND1.toString()))
             throw new CustomBadRequestException(CustomError.builder().code("403")
                     .message("Round of schedule is not suited with Round of CV").build());
-        if (scheduleDetailRepository.findByScheduleDetailIDCvIDAndRoundNum(cvID, round) != null)
+        if (scheduleDetailRepository.findByScheduleDetailIDCvIDAndRoundNum(cvID, round).size()!=0)
             throw new CustomBadRequestException(CustomError.builder().code("403")
                     .message("This CV has been scheduled for this round before").build());
         if (round.equals(Round.ROUND1.toString()) && interviewerIDs.size() != 1)
