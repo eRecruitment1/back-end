@@ -130,7 +130,7 @@ public class ScheduleServiceImpl implements ScheduleService {
             Room room = roomRepository.findByRoomName(createScheduleRequest.getRoomName());
             checkValidRequest(roundNum, createScheduleRequest.getCvID(), createScheduleRequest.getInterviewerIDs());
             checkValidTime(createScheduleRequest.getDate(), startTime, endTime);
-            checkValidCV(createScheduleRequest.getCvID());
+            //checkValidCV(createScheduleRequest.getCvID());
             checkValidInterviewer(createScheduleRequest.getInterviewerIDs(), createScheduleRequest.getDate(),
                     startTime, endTime);
             checkValidUrlAndRoom(urlMeeting, room, createScheduleRequest.getDate(), startTime, endTime);
@@ -270,14 +270,14 @@ public class ScheduleServiceImpl implements ScheduleService {
         }
     }
 
-    public void checkValidCV(int cvID) throws CustomBadRequestException {
-        List<ScheduleDetail> scheduleDetails = scheduleDetailRepository.findByScheduleDetailIDCvID(cvID);
-        for (ScheduleDetail s : scheduleDetails) {
-            if (!s.isStatus())
-                throw new CustomBadRequestException(
-                        CustomError.builder().code("403").message("This cv is scheduled before").build());
-        }
-    }
+  // public void checkValidCV(int cvID) throws CustomBadRequestException {
+  //      List<ScheduleDetail> scheduleDetails = scheduleDetailRepository.findByScheduleDetailIDCvID(cvID);
+  //      for (ScheduleDetail s : scheduleDetails) {
+  //          if (!s.isStatus())
+  //              throw new CustomBadRequestException(
+  //                      CustomError.builder().code("403").message("This cv is scheduled before").build());
+   //     }
+  //  }
 
     public void checkValidTime(Date date, Time startTime, Time endTime) throws CustomBadRequestException {
         LocalDateTime end = LocalDateTime.parse(date.toString() + "T" + endTime.toString());
@@ -310,7 +310,7 @@ public class ScheduleServiceImpl implements ScheduleService {
                     updateScheduleRequest.getNewInterviewerIDs());
 
             if (updateScheduleRequest.getNewCVID() != updateScheduleRequest.getCvID())
-                checkValidCV(updateScheduleRequest.getNewCVID());
+              //  checkValidCV(updateScheduleRequest.getNewCVID());
             if ((updateScheduleRequest.getNewInterviewerIDs().size() != interviewerIDs.size()) ||
                     (updateScheduleRequest.getNewInterviewerIDs().size() == interviewerIDs.size()
                             && !updateScheduleRequest.getNewInterviewerIDs().containsAll(interviewerIDs)))
