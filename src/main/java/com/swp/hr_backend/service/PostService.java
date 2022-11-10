@@ -17,5 +17,5 @@ public interface PostService {
     public PostDTO updatePost(PostDTO post) throws BaseCustomException;
     public Page<PostDTO> getAllPost(int pageNumber,int pageSize);
     public PostDTO getPostByID(int id);
-    public List<Post> getAllPost();
+    public List<PostDTO> getAllPost();
 }

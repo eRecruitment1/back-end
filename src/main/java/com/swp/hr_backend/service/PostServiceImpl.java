@@ -123,13 +123,13 @@ public class PostServiceImpl implements PostService {
 	}
 
 	@Override
-	public List<Post> getAllPost() {
-		List<Post> posts = new ArrayList<>();
+	public List<PostDTO> getAllPost() {
+		List<PostDTO> postDTOs = new ArrayList<>();
 		Iterable<Post> postList =  postRepository.findAll();
         for (Post post : postList) {
-			posts.add(post);
+			postDTOs.add(ObjectMapper.postToPostDTO(post));
 		}
-		return posts;
+		return postDTOs;
 	}
 
 }

@@ -71,7 +71,7 @@ public class UserCVController {
         return ResponseEntity.ok(uploadResponses);
 	}
     @GetMapping("/getAllCV")
-    public List<UserCV> getMethodName() {
+    public List<UserCVUploadResponse> getMethodName() {
         return cvService.getAllUserCVs();
     }
     

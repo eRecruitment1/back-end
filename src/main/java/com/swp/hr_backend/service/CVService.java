@@ -21,5 +21,5 @@ public interface CVService {
     
     public boolean evaluateUserCV(EvaluateRequest evaluate) throws BaseCustomException, MessagingException;
     public List<UserCVUploadResponse> getCompleted() throws CustomUnauthorizedException;
-    public List<UserCV> getAllUserCVs();
+    public List<UserCVUploadResponse> getAllUserCVs();
 }

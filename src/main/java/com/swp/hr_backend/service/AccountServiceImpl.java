@@ -127,8 +127,13 @@ public class AccountServiceImpl implements AccountService {
 	}
 
 	@Override
-	public List<Account> getListAccount() {
-		return accountRepository.findAll();
+	public List<AccountResponse> getListAccount() {
+		List<Account> accounts =  accountRepository.findAll();
+		List<AccountResponse>  accountResponses = new ArrayList<>();
+		for (Account account : accounts) {
+            accountResponses.add(ObjectMapper.accountToAccountResponse(account));
+		}
+		return accountResponses;
 	}
 
 	@Override
