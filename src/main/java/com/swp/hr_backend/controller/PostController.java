@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.swp.hr_backend.entity.Post;
 import com.swp.hr_backend.exception.custom.BaseCustomException;
 import com.swp.hr_backend.exception.custom.CustomBadRequestException;
 import com.swp.hr_backend.exception.custom.CustomNotFoundException;
@@ -99,4 +100,9 @@ public class PostController {
 		}
 		return ResponseEntity.ok(postDTO);
 	}
+	@GetMapping("/getAllPost")
+	public List<Post> getAllPost() {
+		return postService.getAllPost();
+	}
+	
 }

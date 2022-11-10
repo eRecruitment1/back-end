@@ -12,8 +12,10 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.swp.hr_backend.entity.UserCV;
 import com.swp.hr_backend.exception.custom.BaseCustomException;
 import com.swp.hr_backend.exception.custom.CustomBadRequestException;
 import com.swp.hr_backend.exception.custom.CustomDuplicateFieldException;
@@ -26,6 +28,7 @@ import com.swp.hr_backend.model.response.UserCVUploadResponse;
 import com.swp.hr_backend.service.CVService;
 
 import lombok.RequiredArgsConstructor;
+
 
 @RequestMapping("/api/userCV")
 @RestController
@@ -67,5 +70,10 @@ public class UserCVController {
         }
         return ResponseEntity.ok(uploadResponses);
 	}
+    @GetMapping("/getAllCV")
+    public List<UserCV> getMethodName() {
+        return cvService.getAllUserCVs();
+    }
+    
 }
 

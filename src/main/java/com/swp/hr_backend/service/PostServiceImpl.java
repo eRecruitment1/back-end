@@ -122,4 +122,14 @@ public class PostServiceImpl implements PostService {
 		return null;
 	}
 
+	@Override
+	public List<Post> getAllPost() {
+		List<Post> posts = new ArrayList<>();
+		Iterable<Post> postList =  postRepository.findAll();
+        for (Post post : postList) {
+			posts.add(post);
+		}
+		return posts;
+	}
+
 }
