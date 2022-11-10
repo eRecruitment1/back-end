@@ -101,7 +101,7 @@ public class PostController {
 		return ResponseEntity.ok(postDTO);
 	}
 	@GetMapping("/getAllPost")
-	public List<Post> getAllPost() {
+	public List<PostDTO> getAllPost() {
 		return postService.getAllPost();
 	}
 	

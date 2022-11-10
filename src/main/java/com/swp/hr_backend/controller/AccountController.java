@@ -39,7 +39,7 @@ public class AccountController {
 	private final AccountService accService;
 	
 	@GetMapping("/getListAccount")
-	public List<Account> getListAccount() {
+	public List<AccountResponse> getListAccount() {
 		return accService.getListAccount();
 	}
 	@GetMapping(value="/{id}")

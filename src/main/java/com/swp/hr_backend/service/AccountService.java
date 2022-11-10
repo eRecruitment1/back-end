@@ -24,7 +24,7 @@ public interface AccountService {
     public ProfileResponse updateProfile(ProfileRequest profileRequest, String loggedAccount)
             throws CustomDuplicateFieldException;
     
-    public List<Account> getListAccount();
+    public List<AccountResponse> getListAccount();
     
     public Candidate createNewCandidate(Candidate acc);
 

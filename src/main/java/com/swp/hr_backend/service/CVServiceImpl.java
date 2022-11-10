@@ -297,7 +297,7 @@ public class CVServiceImpl implements CVService {
 			result.stream().distinct().collect(Collectors.toList());
 			for (Integer r : result) {
 				UserCV userCV = userCVRepository.findByCvID(r);
-				UserCVUploadResponse uploadResponse =  ObjectMapper.userCVToUserCVResponse(userCV);
+				UserCVUploadResponse uploadResponse = ObjectMapper.userCVToUserCVResponse(userCV);
 				Account accountResult = accountRepository.findById(userCV.getCandidate().getAccountID()).get();
 				Post postResult = postRepository.findById(userCV.getPost().getPostID()).get();
 				uploadResponse.setFirstName(accountResult.getFirstname());
@@ -320,18 +320,29 @@ public class CVServiceImpl implements CVService {
 		dataMailRequest.setTo(to);
 		if (result.equals("round1") || result.equals("round2")) {
 			dataMailRequest.setSubject(MailSubjectConstant.PASS_ROUND);
-		}
-		else if (result.equals("pass")) {
+		} else if (result.equals("pass")) {
 			dataMailRequest.setSubject(MailSubjectConstant.PASS_RESULT);
-		}
-		else {
+		} else {
 			dataMailRequest.setSubject(MailSubjectConstant.NOT_PASS);
 		}
 		mailService.sendHtmlMail(dataMailRequest, MailBody.mailResult(firstname, result));
 	}
 
 	@Override
-	public List<UserCV> getAllUserCVs() {
-		return userCVRepository.findAll();
+	public List<UserCVUploadResponse> getAllUserCVs() {
+		List<UserCV> userCVs = userCVRepository.findAll();
+		List<UserCVUploadResponse> uploadResponses = new ArrayList<>();
+		for (UserCV userCV : userCVs) {
+			UserCVUploadResponse uploadResponse = ObjectMapper.userCVToUserCVResponse(userCV);
+			Account accountResult = accountRepository.findById(userCV.getCandidate().getAccountID()).get();
+			Post postResult = postRepository.findById(userCV.getPost().getPostID()).get();
+			uploadResponse.setFirstName(accountResult.getFirstname());
+			uploadResponse.setLastName(accountResult.getLastname());
+			uploadResponse.setEmail(accountResult.getEmail());
+			uploadResponse.setPostTitle(postResult.getTitle());
+			uploadResponse.setUsername(accountResult.getUsername());
+			uploadResponses.add(uploadResponse);
+		}
+		return uploadResponses;
 	}
 }
