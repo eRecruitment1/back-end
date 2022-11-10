@@ -329,4 +329,9 @@ public class CVServiceImpl implements CVService {
 		}
 		mailService.sendHtmlMail(dataMailRequest, MailBody.mailResult(firstname, result));
 	}
+
+	@Override
+	public List<UserCV> getAllUserCVs() {
+		return userCVRepository.findAll();
+	}
 }

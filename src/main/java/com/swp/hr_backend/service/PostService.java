@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.data.domain.Page;
 
+import com.swp.hr_backend.entity.Post;
 import com.swp.hr_backend.exception.custom.BaseCustomException;
 import com.swp.hr_backend.model.dto.PostDTO;
 
@@ -16,4 +17,5 @@ public interface PostService {
     public PostDTO updatePost(PostDTO post) throws BaseCustomException;
     public Page<PostDTO> getAllPost(int pageNumber,int pageSize);
     public PostDTO getPostByID(int id);
+    public List<Post> getAllPost();
 }
