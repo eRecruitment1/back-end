@@ -29,6 +29,8 @@ import com.swp.hr_backend.model.response.AccountResponse;
 import com.swp.hr_backend.service.AccountService;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.PutMapping;
+
 
 @RequestMapping("/api/account")
 @RestController
@@ -116,5 +118,9 @@ public class AccountController {
 			return new ResponseEntity<Boolean>(result, HttpStatus.BAD_REQUEST);
 		}
 	}
-	
+	@PutMapping(value="updateStatus/{id}")
+	public boolean putMethodName(@PathVariable String id) throws CustomUnauthorizedException {
+		boolean result = accService.changeAccountStatus(id);
+		return result;
+	}
 }

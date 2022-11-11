@@ -316,6 +316,23 @@ public class AccountServiceImpl implements AccountService {
 		return false;
 	}
 
+	@Override
+	public boolean changeAccountStatus(String id) throws CustomUnauthorizedException {
+		Account currentAccount = jwtTokenUtil.loggedAccount();
+		if(jwtTokenUtil.checkPermissionAccount(currentAccount,AccountRole.ADMIN)){
+			Account account = accountRepository.findById(id).get();
+			if(account == null){
+				return false;
+			}
+			boolean changeStatus = !account.isStatus();
+			account.setStatus(changeStatus);
+			accountRepository.save(account);
+			return true;
+		}
+		throw new CustomUnauthorizedException(CustomError.builder().code("401").code("You Can't Do This Function").build());
+	
+	}
+
 
 
 }
