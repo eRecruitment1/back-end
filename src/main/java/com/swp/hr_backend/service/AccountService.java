@@ -42,4 +42,6 @@ public interface AccountService {
     public boolean forgotPassword(ForgotPasswordRequest forgotPassReq) throws BaseCustomException;
     
     public boolean changeAccountRole(ChangeRoleRequest roleRequest) throws BaseCustomException;
+
+    public boolean changeAccountStatus(String id) throws CustomUnauthorizedException;
 }
