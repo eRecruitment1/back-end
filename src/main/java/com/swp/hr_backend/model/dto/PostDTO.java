@@ -33,4 +33,6 @@ public class PostDTO {
 	@Nullable
 	@JsonProperty("accountId")
 	private String accountId;
+	private String fullName;
+	private String username;
 }

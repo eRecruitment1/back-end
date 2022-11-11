@@ -20,6 +20,7 @@ import com.swp.hr_backend.exception.custom.CustomUnauthorizedException;
 import com.swp.hr_backend.model.CustomError;
 import com.swp.hr_backend.model.dto.PostDTO;
 import com.swp.hr_backend.model.mapper.ObjectMapper;
+import com.swp.hr_backend.repository.AccountRepository;
 import com.swp.hr_backend.repository.EmployeeRepository;
 import com.swp.hr_backend.repository.PostRepository;
 import com.swp.hr_backend.utils.AccountRole;
@@ -33,6 +34,7 @@ public class PostServiceImpl implements PostService {
 	private final PostRepository postRepository;
 	private final EmployeeRepository employeeRepository;
 	private final JwtTokenUtil jwtTokenUtil;
+	private final AccountRepository accountRepository;
 
 	@Override
 	public List<PostDTO> getLastestPost() {
@@ -127,7 +129,12 @@ public class PostServiceImpl implements PostService {
 		List<PostDTO> postDTOs = new ArrayList<>();
 		Iterable<Post> postList =  postRepository.findAll();
         for (Post post : postList) {
-			postDTOs.add(ObjectMapper.postToPostDTO(post));
+		    String id = post.getEmployee().getAccountID();
+			Account account = accountRepository.findById(id).get();
+			PostDTO postDTO = ObjectMapper.postToPostDTO(post);
+			postDTO.setFullName(account.getFirstname() + " " + account.getLastname());
+			postDTO.setUsername(account.getUsername());
+			postDTOs.add(postDTO);
 		}
 		return postDTOs;
 	}
