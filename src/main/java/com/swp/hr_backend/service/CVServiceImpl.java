@@ -341,7 +341,8 @@ public class CVServiceImpl implements CVService {
 			uploadResponse.setEmail(accountResult.getEmail());
 			uploadResponse.setPostTitle(postResult.getTitle());
 			uploadResponse.setUsername(accountResult.getUsername());
-			uploadResponses.add(uploadResponse);
+			uploadResponse.setRoundNum(userCV.getFinalResult().getResultStatus());
+			uploadResponses.add(uploadResponse);	
 		}
 		return uploadResponses;
 	}
