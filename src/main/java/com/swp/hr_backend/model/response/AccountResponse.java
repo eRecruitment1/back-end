@@ -25,4 +25,5 @@ public class AccountResponse {
     private boolean status;
     private boolean enabled;
     private String tokenVerify;
+    private String roleName;
 }

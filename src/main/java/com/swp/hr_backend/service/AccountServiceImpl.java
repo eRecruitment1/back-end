@@ -51,11 +51,13 @@ public class AccountServiceImpl implements AccountService {
 	private final EmployeeRepository employeeRepository;
 	private final MailService mailService;
 	private final JwtTokenUtil jwtTokenUtil;
+	private final EmployeeService employeeService;
+	private final RoleService roleService;
 
 	@Override
 	public Account findAccountByUsername(String username) {
-		Account account  = accountRepository.findByUsername(username) ;
-		if(account != null){
+		Account account = accountRepository.findByUsername(username);
+		if (account != null) {
 			return account;
 		}
 		return null;
@@ -128,10 +130,21 @@ public class AccountServiceImpl implements AccountService {
 
 	@Override
 	public List<AccountResponse> getListAccount() {
-		List<Account> accounts =  accountRepository.findAll();
-		List<AccountResponse>  accountResponses = new ArrayList<>();
+		List<Account> accounts = accountRepository.findAll();
+		List<AccountResponse> accountResponses = new ArrayList<>();
 		for (Account account : accounts) {
-            accountResponses.add(ObjectMapper.accountToAccountResponse(account));
+			String roleName = "";
+			Optional<String> roleNameOptional = Optional.empty();
+			Integer roleID = employeeService.findRoleIDByAccountID(account.getAccountID());
+			if (roleID != null) {
+				roleNameOptional = roleService.findRolenameByRoleID(roleID);
+				roleName = roleNameOptional.get();
+			} else {
+				roleName = AccountRole.CANDIDATE.toString();
+			}
+			AccountResponse accountResponse = ObjectMapper.accountToAccountResponse(account);
+			accountResponse.setRoleName(roleName);
+			accountResponses.add(accountResponse);
 		}
 		return accountResponses;
 	}
@@ -147,15 +160,16 @@ public class AccountServiceImpl implements AccountService {
 
 	@Override
 	public AccountResponse getAccountByID(String id) {
-	    Optional<Account> account = accountRepository.findById(id);
-		if(account.isEmpty()){
+		Optional<Account> account = accountRepository.findById(id);
+		if (account.isEmpty()) {
 			return null;
 		}
 		return ObjectMapper.accountToAccountResponse(account.get());
 	}
 
 	@Override
-	public AccountResponse signUp(SignupRequest signupRequest) throws CustomDuplicateFieldException, MessagingException {
+	public AccountResponse signUp(SignupRequest signupRequest)
+			throws CustomDuplicateFieldException, MessagingException {
 		checkDuplicate(signupRequest.getEmail(), signupRequest.getPhone(), signupRequest.getUsername());
 		Candidate candidate = new Candidate();
 		candidate.setAccountID(UUID.randomUUID().toString());
@@ -181,10 +195,12 @@ public class AccountServiceImpl implements AccountService {
 	}
 
 	@Override
-	public AccountResponse createNewEmployee(SignupRequest signupRequest) throws CustomDuplicateFieldException, MessagingException, CustomUnauthorizedException {
+	public AccountResponse createNewEmployee(SignupRequest signupRequest)
+			throws CustomDuplicateFieldException, MessagingException, CustomUnauthorizedException {
 		checkDuplicate(signupRequest.getEmail(), signupRequest.getPhone(), signupRequest.getUsername());
 		Account acc = loggedAccount();
-		if (employeeRepository.findByAccountID(acc.getAccountID())!=null && employeeRepository.findByAccountID(acc.getAccountID()).getRole().getRoleName().equals(AccountRole.ADMIN.toString())) {
+		if (employeeRepository.findByAccountID(acc.getAccountID()) != null && employeeRepository
+				.findByAccountID(acc.getAccountID()).getRole().getRoleName().equals(AccountRole.ADMIN.toString())) {
 			Employee employee = new Employee();
 			employee.setAccountID(UUID.randomUUID().toString());
 			employee.setUsername(signupRequest.getUsername());
@@ -207,8 +223,9 @@ public class AccountServiceImpl implements AccountService {
 			String link = "https://we-hr-system.herokuapp.com/api/account/verify?token=" + token;
 			mailService.sendHtmlMail(dataMailRequest, MailBody.VerifyEmployee(signupRequest.getFirstname(), link));
 			return ObjectMapper.accountToAccountResponse(employee);
-		} else throw new CustomUnauthorizedException(CustomError.builder().code("unauthorized")
-				.message("Access denied, you need to be ADMIN to do this!").build());
+		} else
+			throw new CustomUnauthorizedException(CustomError.builder().code("unauthorized")
+					.message("Access denied, you need to be ADMIN to do this!").build());
 	}
 
 	@Override
@@ -216,18 +233,20 @@ public class AccountServiceImpl implements AccountService {
 		Account acc = accountRepository.findByTokenVerify(tokenVerify);
 		if (acc == null)
 			throw new CustomNotFoundException(CustomError.builder().code("404").message("not found token").build());
-		if (acc.isEnabled()) return "This account has been already verified before.";
+		if (acc.isEnabled())
+			return "This account has been already verified before.";
 		acc.setEnabled(true);
 		accountRepository.save(acc);
 		return "Verified";
 	}
 
 	@Override
-	public String sendMailVerify() throws MessagingException, CustomNotFoundException{
+	public String sendMailVerify() throws MessagingException, CustomNotFoundException {
 		Account account = loggedAccount();
 		if (account == null)
 			throw new CustomNotFoundException(CustomError.builder().code("404").message("not found token").build());
-		if (account.isEnabled()) return "This account has been already verified before.";
+		if (account.isEnabled())
+			return "This account has been already verified before.";
 		DataMailRequest dataMailRequest = new DataMailRequest();
 		dataMailRequest.setTo(account.getEmail());
 		dataMailRequest.setSubject(MailSubjectConstant.REGISTER);
@@ -258,7 +277,7 @@ public class AccountServiceImpl implements AccountService {
 		}
 		return accountResponses;
 	}
-	
+
 	@Override
 	public boolean forgotPassword(ForgotPasswordRequest forgotPassReq) throws BaseCustomException {
 		if (forgotPassReq.getAccountId() == null || forgotPassReq.getNewPassword() == null)
@@ -267,7 +286,8 @@ public class AccountServiceImpl implements AccountService {
 		Account acc = accountRepository.findById(forgotPassReq.getAccountId()).get();
 		if (acc == null)
 			throw new CustomNotFoundException(CustomError.builder().code("404").message("Not Found Account!").build());
-		//acc.setPassword(new BCryptPasswordEncoder().encode(forgotPassReq.getNewPassword()));
+		// acc.setPassword(new
+		// BCryptPasswordEncoder().encode(forgotPassReq.getNewPassword()));
 		acc.setPassword(forgotPassReq.getNewPassword());
 		if (accountRepository.save(acc) != null)
 			return true;
@@ -285,14 +305,17 @@ public class AccountServiceImpl implements AccountService {
 				throw new CustomNotFoundException(
 						CustomError.builder().code("404").message("Not Found Account!").build());
 			String role = jwtTokenUtil.getRoleNameByAccountId(acc.getAccountID());
-			if(role.equalsIgnoreCase(AccountRole.CANDIDATE.toString()))
+			if (role.equalsIgnoreCase(AccountRole.CANDIDATE.toString()))
 				throw new CustomBadRequestException(CustomError.builder().code("403")
 						.message("Cannot change role of candidate account!").build());
 			if (!roleRequest.getRole().equalsIgnoreCase(AccountRole.CANDIDATE.toString())) {
-				if(setRoleAccount(acc, roleRequest.getRole())) return true;
-				else throw new CustomNotFoundException(CustomError.builder().code("404").message("Not Found!").build());
-			} else throw new CustomBadRequestException(CustomError.builder().code("403")
-					.message("Cannot change role to Candidate!").build());
+				if (setRoleAccount(acc, roleRequest.getRole()))
+					return true;
+				else
+					throw new CustomNotFoundException(CustomError.builder().code("404").message("Not Found!").build());
+			} else
+				throw new CustomBadRequestException(CustomError.builder().code("403")
+						.message("Cannot change role to Candidate!").build());
 		} else
 			throw new CustomUnauthorizedException(CustomError.builder().code("401")
 					.message("Access denied, you need to be Admin to do this!").build());
@@ -319,9 +342,9 @@ public class AccountServiceImpl implements AccountService {
 	@Override
 	public boolean changeAccountStatus(String id) throws CustomUnauthorizedException {
 		Account currentAccount = jwtTokenUtil.loggedAccount();
-		if(jwtTokenUtil.checkPermissionAccount(currentAccount,AccountRole.ADMIN)){
+		if (jwtTokenUtil.checkPermissionAccount(currentAccount, AccountRole.ADMIN)) {
 			Account account = accountRepository.findById(id).get();
-			if(account == null){
+			if (account == null) {
 				return false;
 			}
 			boolean changeStatus = !account.isStatus();
@@ -329,10 +352,9 @@ public class AccountServiceImpl implements AccountService {
 			accountRepository.save(account);
 			return true;
 		}
-		throw new CustomUnauthorizedException(CustomError.builder().code("401").code("You Can't Do This Function").build());
-	
+		throw new CustomUnauthorizedException(
+				CustomError.builder().code("401").code("You Can't Do This Function").build());
+
 	}
-
-
 
 }
